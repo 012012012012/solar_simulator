@@ -83,13 +83,11 @@
       height: 380px !important;
     }
 
-    /* 태양의 축복 관련 파란색 */
     label.blessing {
       color: #321ee9;
       font-weight: bold;
     }
 
-    /* 태양의 가호 관련 분홍색 */
     label.favour {
       color: #e91eac;
       font-weight: bold;
@@ -217,7 +215,7 @@
         }
       } else {
         if ([10, 20, 30].includes(level) || useFavour) {
-          // do nothing
+          //pass
         } else if ((Math.random() < 0.8 && level < 25) || level >= 25) {
           level -= 1;
         }
