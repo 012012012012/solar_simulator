@@ -3,7 +3,7 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8">
-  <title>강화 시뮬레이터</title>
+  <title>태양석 강화 시뮬레이터</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
@@ -71,28 +71,33 @@
       overflow-y: auto;
       margin-bottom: 30px;
     }
-    canvas#histChart {
+    canvas {
       background: white;
       border-radius: 12px;
       box-shadow: 0 0 8px rgba(0,0,0,0.1);
       max-width: 100%;
-      height: 380px !important;
+      margin-bottom: 30px;
+    }
+    canvas#histChart {
+      height: 420px !important;
+    }
+    canvas#solarChart {
+      height: 420px !important;
     }
     @media (max-width: 600px) {
-      canvas#histChart {
-      height: 240px !important;
-      width: 100% !important;
+      canvas#histChart, canvas#solarChart {
+        display: none !important;
+      }
     }
-}
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>강화 시뮬레이터</h1>
+    <h1>태양석 강화 시뮬레이터</h1>
     <div class="form-wrapper">
       <label>시작 레벨: <input type="number" id="startLevel" value="20"></label>
       <label>목표 레벨: <input type="number" id="endLevel" value="30"></label>
-      <label>시도 횟수: <input type="number" id="numRuns" value="10000" readonly style="background:#eee; color:#555;"></label>
+      <label>시도 횟수: <input type="number" id="numRuns" value="1000" readonly style="background:#eee; color:#555;"></label>
       <label class="blessing">태양의 축복 가격: <input type="number" id="blessingPrice" value="10000"></label>
       <label class="favour">태양의 가호 가격: <input type="number" id="favourPrice" value="150000"></label>
       <label class="blessing">축복 사용 레벨: <input type="text" id="blessingLevels" value="24,25,26,27,28"></label>
@@ -101,6 +106,7 @@
     </div>
     <pre id="result"></pre>
     <canvas id="histChart" width="600" height="300"></canvas>
+    <canvas id="solarChart" width="600" height="300"></canvas> <!-- 🔹추가된 그래프 -->
   </div>
 
 <script>
@@ -147,23 +153,18 @@ const upgrade_data = {
   	39: {"token": 4000, "solar": 40, "probability": 25},
   };
 
-  function item_cost(level) {
-    if (level <= 9) return 5;
-    if (level <= 18) return 10;
-    return 15;
-  }
 
-  function parseSet(input) {
-    return new Set(
-      input
-        .replace(/\s+/g, '')
-        .split(',')
-        .map(x => parseInt(x))
-        .filter(x => !isNaN(x))
-    );
-  }
+function item_cost(level) {
+  if (level <= 9) return 5;
+  if (level <= 18) return 10;
+  return 15;
+}
 
-  function simulate_upgrade(path, blessing_levels, favour_levels, blessing_price, favour_price) {
+function parseSet(input) {
+  return new Set(input.replace(/\s+/g, '').split(',').map(x => parseInt(x)).filter(x => !isNaN(x)));
+}
+
+function simulate_upgrade(path, blessing_levels, favour_levels, blessing_price, favour_price) {
     let level = path.start_level;
     const target = path.end_level;
     let attempts = 0;
@@ -205,7 +206,7 @@ const upgrade_data = {
         }
       } else {
         if ([10, 20, 30].includes(level) || useFavour) {
-          // do nothing
+          //pass
         } else if ((Math.random() < 0.8 && level < 25) || level >= 25) {
           level -= 1;
         }
@@ -215,176 +216,195 @@ const upgrade_data = {
     return [attempts, total_token, total_solar, blessing_used, favour_used];
   }
 
-  let chartInstance = null;
 
-  function formatNumberShort(num) {
-    if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
-    if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
-    return num.toString();
+let chartInstance = null;
+let solarChartInstance = null;
+function formatNumberShort(num) {
+  if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+  if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+  return num.toString();
+}
+
+function createHistogram(data, binCount) {
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const binSize = (max - min) / binCount;
+  const bins = new Array(binCount).fill(0);
+
+  data.forEach(value => {
+    let idx = Math.floor((value - min) / binSize);
+    if (idx === binCount) idx = binCount - 1;
+    bins[idx]++;
+  });
+  const labels = [];
+  for (let i = 0; i < binCount; i++) {
+    const rangeStart = min + binSize * i;
+    const rangeEnd = rangeStart + binSize;
+    labels.push(`${formatNumberShort(Math.round(rangeStart))}~${formatNumberShort(Math.round(rangeEnd))}`);
   }
+  return { bins, labels };
+}
 
-  function createHistogram(data, binCount) {
-    const min = Math.min(...data);
-    const max = Math.max(...data);
-    const binSize = (max - min) / binCount;
-    const bins = new Array(binCount).fill(0);
-
-    data.forEach(value => {
-      let idx = Math.floor((value - min) / binSize);
-      if (idx === binCount) idx = binCount - 1;
-      bins[idx]++;
-    });
-
-    const labels = [];
-    for (let i = 0; i < binCount; i++) {
-      const rangeStart = min + binSize * i;
-      const rangeEnd = rangeStart + binSize;
-      labels.push(`${formatNumberShort(Math.round(rangeStart))}~${formatNumberShort(Math.round(rangeEnd))}`);
-    }
-
-    return { bins, labels };
-  }
-
-  function smoothLine(data, windowSize = 10) {
-    const smoothed = [];
-    for (let i = 0; i < data.length; i++) {
-      let sum = 0;
-      let count = 0;
-      for (let j = i - Math.floor(windowSize / 2); j <= i + Math.floor(windowSize / 2); j++) {
-        if (j >= 0 && j < data.length) {
-          sum += data[j];
-          count++;
-        }
+function smoothLine(data, windowSize = 10) {
+  const smoothed = [];
+  for (let i = 0; i < data.length; i++) {
+    let sum = 0, count = 0;
+    for (let j = i - Math.floor(windowSize / 2); j <= i + Math.floor(windowSize / 2); j++) {
+      if (j >= 0 && j < data.length) {
+        sum += data[j];
+        count++;
       }
-      smoothed.push(sum / count);
     }
-    return smoothed;
+    smoothed.push(sum / count);
+  }
+  return smoothed;
+}
+
+function run_simulations(path, num_runs, blessing_levels, favour_levels, blessing_price, favour_price) {
+  let total_attempts = 0, total_tokens = 0, total_solars = 0, total_blessings = 0, total_favours = 0;
+  const total_token_lst = [], solar_lst = [];
+
+  for (let i = 0; i < num_runs; i++) {
+    const [attempts, tokens, solars, blessings, favours] = simulate_upgrade(path, blessing_levels, favour_levels, blessing_price, favour_price);
+    total_attempts += attempts;
+    total_tokens += tokens;
+    total_solars += solars;
+    total_blessings += blessings;
+    total_favours += favours;
+    total_token_lst.push(tokens + blessings * blessing_price + favours * favour_price);
+    solar_lst.push(solars);
   }
 
-  function run_simulations(path, num_runs, blessing_levels, favour_levels, blessing_price, favour_price) {
-    let total_attempts = 0;
-    let total_tokens = 0;
-    let total_solars = 0;
-    let total_blessings = 0;
-    let total_favours = 0;
-    const total_token_lst = [];
+  const avg_attempts = total_attempts / num_runs;
+  const avg_tokens = total_tokens / num_runs;
+  const avg_solars = total_solars / num_runs;
+  const avg_blessings = total_blessings / num_runs;
+  const avg_favours = total_favours / num_runs;
+  const total_cost = avg_tokens + avg_blessings * blessing_price + avg_favours * favour_price;
+  const min_cost = Math.min(...total_token_lst);
+  const max_cost = Math.max(...total_token_lst);
+  const std = Math.sqrt(total_token_lst.reduce((sum, val) => sum + (val - total_cost) ** 2, 0) / num_runs);
 
-    for (let i = 0; i < num_runs; i++) {
-      const [attempts, tokens, solars, blessings, favours] = simulate_upgrade(path, blessing_levels, favour_levels, blessing_price, favour_price);
-      total_attempts += attempts;
-      total_tokens += tokens;
-      total_solars += solars;
-      total_blessings += blessings;
-      total_favours += favours;
-      total_token_lst.push(tokens + blessings * blessing_price + favours * favour_price);
-    }
+  let resultText = `Simulated ${num_runs.toLocaleString()} runs from Level ${path.start_level} to ${path.end_level}:\n`;
+  if (blessing_levels.size > 0) resultText += `* Blessing at: [${[...blessing_levels].sort((a,b)=>a-b)}]\n`;
+  if (favour_levels.size > 0) resultText += `* Favour at: [${[...favour_levels].sort((a,b)=>a-b)}]\n`;
+  resultText += `\nAverage Attempts >>> ${avg_attempts.toFixed(2)}\n` +
+    `Average Token Cost >>> ${Math.round(avg_tokens).toLocaleString()}\n` +
+    `Average Solar Energy >>> ${Math.round(avg_solars).toLocaleString()}\n` +
+    `Avg Blessings Used >>> ${Math.round(avg_blessings)}\n` +
+    `Avg Favours Used >>> ${Math.round(avg_favours)}\n\n` +
+    `Total Estimated Cost >>> ${Math.round(total_cost).toLocaleString()}\n` +
+    `Best Case >>> ${min_cost.toLocaleString()}\n` +
+    `Worst Case >>> ${max_cost.toLocaleString()}\n` +
+    `Std Dev >>> ${Math.round(std).toLocaleString()}`;
 
-    const avg_attempts = total_attempts / num_runs;
-    const avg_tokens = total_tokens / num_runs;
-    const avg_solars = total_solars / num_runs;
-    const avg_blessings = total_blessings / num_runs;
-    const avg_favours = total_favours / num_runs;
-    const total_cost = avg_tokens + avg_blessings * blessing_price + avg_favours * favour_price;
-    const min_cost = Math.min(...total_token_lst);
-    const max_cost = Math.max(...total_token_lst);
-    const std = Math.sqrt(total_token_lst.reduce((sum, val) => sum + (val - total_cost) ** 2, 0) / num_runs);
+  document.getElementById("result").textContent = resultText;
 
-    let resultText =
-      `Simulated ${num_runs.toLocaleString()} runs from Level ${path.start_level.toLocaleString()} to ${path.end_level.toLocaleString()}:\n`;
-
-    if (blessing_levels && blessing_levels.size > 0) {
-      resultText += `* Blessing applied at levels: [${[...blessing_levels].sort((a,b)=>a-b).join(', ')}]\n`;
-    }
-    if (favour_levels && favour_levels.size > 0) {
-      resultText += `* Favour applied at levels: [${[...favour_levels].sort((a,b)=>a-b).join(', ')}]\n`;
-    }
-
-    resultText += `\nAverage Attempts >>> ${avg_attempts.toFixed(2)}\n` +
-      `Average Token Cost(upgrade only) >>> ${Math.round(avg_tokens).toLocaleString()}\n` +
-      `Average Solar Energy Cost >>> ${Math.round(avg_solars).toLocaleString()}\n` +
-      `Average Blessing Items Used >>> ${Math.round(avg_blessings).toLocaleString()}\n` +
-      `Average Favour Items Used >>> ${Math.round(avg_favours).toLocaleString()}\n\n` +
-      `Total Estimated Token Cost (including blessing & favour) >>> ${Math.round(total_cost).toLocaleString()}\n` +
-      `Best Token Cost Case >>> ${min_cost.toLocaleString()}\n` +
-      `Worst Token Cost Case >>> ${max_cost.toLocaleString()}\n` +
-      `Std >>> ${Math.round(std).toLocaleString()}`;
-
-    document.getElementById("result").textContent = resultText;
-
-    const ctx = document.getElementById('histChart').getContext('2d');
-
-    if (chartInstance) {
-      chartInstance.destroy();
-    }
-
-    const binCount = 50;
-    const { bins, labels } = createHistogram(total_token_lst, binCount);
-    const smoothBins = smoothLine(bins, 5);
-
-    chartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            type: 'bar',
-            label: '비용 히스토그램',
-            data: bins,
-            backgroundColor: 'rgba(75, 192, 192, 0.6)',
-            borderWidth: 1,
-          },
-          {
-            type: 'line',
-            label: '분포선 (이동평균)',
-            data: smoothBins,
-            borderColor: 'rgba(255, 99, 132, 1)',
-            borderWidth: 2,
-            fill: false,
-            tension: 0.3,
-            yAxisID: 'y',
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true,
-            position: 'left',
-            title: { display: true, text: '빈도' }
-          },
-          x: {
-            display: false,
-            title: { display: false },
-            ticks: { display: false }
-          }
+  const ctx = document.getElementById('histChart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+  const binCount = 50;
+  const { bins, labels } = createHistogram(total_token_lst, binCount);
+  const smoothBins = smoothLine(bins, 5);
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          type: 'bar',
+          label: '데이터 수',
+          data: bins,
+          backgroundColor: 'rgba(75, 192, 192, 0.6)',
+          borderWidth: 1,
         },
-        plugins: {
-          legend: { display: true },
-          tooltip: { enabled: true },
-          title: {
-            display: true,
-            text: `비용 분포 및 히스토그램 (${num_runs.toLocaleString()}개 샘플)`,
-            font: { size: 18 }
-          }
+        {
+          type: 'line',
+          label: '이동평균',
+          data: smoothBins,
+          borderColor: 'rgba(255, 99, 132, 1)',
+          borderWidth: 2,
+          fill: false,
+          tension: 0.3,
+          yAxisID: 'y',
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true, title: { display: true} },
+        x: { display: false }
+      },
+      plugins: {
+        legend: { display: true },
+        title: {
+          display: true,
+          text: `돌의 징표`,
+          font: { size: 18 }
         }
       }
-    });
-  }
+    }
+  });
 
-  function runSimulation() {
-    const path = {
-      start_level: parseInt(document.getElementById('startLevel').value),
-      end_level: parseInt(document.getElementById('endLevel').value)
-    };
-    const num_runs = parseInt(document.getElementById('numRuns').value);
-    const blessing_price = parseInt(document.getElementById('blessingPrice').value);
-    const favour_price = parseInt(document.getElementById('favourPrice').value);
-    const blessing_levels = parseSet(document.getElementById('blessingLevels').value);
-    const favour_levels = parseSet(document.getElementById('favourLevels').value);
+  const solarCtx = document.getElementById('solarChart').getContext('2d');
+  if (solarChartInstance) solarChartInstance.destroy();
+  const { bins: solarBins, labels: solarLabels } = createHistogram(solar_lst, binCount);
+  const smoothSolarBins = smoothLine(solarBins, 5);
+  solarChartInstance = new Chart(solarCtx, {
+    type: 'bar',
+    data: {
+      labels: solarLabels,
+      datasets: [
+        {
+          type: 'bar',
+          label: '데이터 수',
+          data: solarBins,
+          backgroundColor: 'rgba(255, 206, 86, 0.6)',
+          borderWidth: 1,
+        },
+        {
+          type: 'line',
+          label: '이동평균',
+          data: smoothSolarBins,
+          borderColor: 'rgba(255, 99, 132, 1)',
+          borderWidth: 2,
+          fill: false,
+          tension: 0.3,
+          yAxisID: 'y',
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true, title: { display: true } },
+        x: { display: false }
+      },
+      plugins: {
+        legend: { display: true },
+        title: {
+          display: true,
+          text: `태양 에너지`,
+          font: { size: 18 }
+        }
+      }
+    }
+  });
+}
 
-    run_simulations(path, num_runs, blessing_levels, favour_levels, blessing_price, favour_price);
-  }
+function runSimulation() {
+  const path = {
+    start_level: parseInt(document.getElementById('startLevel').value),
+    end_level: parseInt(document.getElementById('endLevel').value)
+  };
+  const num_runs = parseInt(document.getElementById('numRuns').value);
+  const blessing_price = parseInt(document.getElementById('blessingPrice').value);
+  const favour_price = parseInt(document.getElementById('favourPrice').value);
+  const blessing_levels = parseSet(document.getElementById('blessingLevels').value);
+  const favour_levels = parseSet(document.getElementById('favourLevels').value);
+
+  run_simulations(path, num_runs, blessing_levels, favour_levels, blessing_price, favour_price);
+}
 </script>
 </body>
 </html>
