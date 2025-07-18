@@ -6,55 +6,113 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
+      margin: 0;
+      padding: 40px;
+      background-color: #edf0c0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
     }
-    label {
+
+    .card {
+      background-color: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.15);
+      max-width: 800px;
+      width: 100%;
+      text-align: left;
+      box-sizing: border-box;
+    }
+
+    .form-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .form-wrapper label {
       display: block;
-      margin-bottom: 8px;
+      width: 100%;
+      font-weight: normal;
     }
+
     input[type="number"], input[type="text"] {
       width: 150px;
+      padding: 4px 6px;
+      margin-left: 10px;
+      font-size: 14px;
     }
+
     button {
-      margin-top: 10px;
-      padding: 6px 12px;
+      width: 160px;
+      padding: 8px 12px;
       font-size: 16px;
       cursor: pointer;
+      margin-top: 10px;
+      align-self: flex-start;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      transition: background-color 0.3s ease;
     }
+    button:hover {
+      background-color: #45a049;
+    }
+
     #result {
       white-space: pre-wrap;
-      max-width: 400px;
       background-color: #f9f9f9;
-      padding: 10px;
+      padding: 15px;
       border: 1px solid #ddd;
       height: 250px;
       overflow-y: auto;
+      margin-bottom: 30px;
+      font-family: monospace;
+      font-size: 14px;
     }
-    .container {
-      display: flex;
-      gap: 20px;
+
+    canvas#histChart {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      max-width: 100%;
+      height: 380px !important;
+    }
+
+    /* 태양의 축복 관련 파란색 */
+    label.blessing {
+      color: #321ee9;
+      font-weight: bold;
+    }
+
+    /* 태양의 가호 관련 분홍색 */
+    label.favour {
+      color: #e91eac;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>강화 시뮬레이터</h1>
+  <div class="card">
+    <h1 style="text-align:center; margin-bottom: 30px;">강화 시뮬레이터</h1>
 
-  <div class="container">
-    <div>
+    <div class="form-wrapper">
       <label>시작 레벨: <input type="number" id="startLevel" value="20"></label>
       <label>목표 레벨: <input type="number" id="endLevel" value="30"></label>
       <label>시도 횟수 (num_runs): <input type="number" id="numRuns" value="10000" readonly style="background-color: #eee; color: #555;"></label>
-      <label>태양의 축복 가격: <input type="number" id="blessingPrice" value="10000"></label>
-      <label>태양의 가호 가격: <input type="number" id="favourPrice" value="150000"></label>
-      <label>태양의 축복 사용할 레벨 (쉼표로 구분): <input type="text" id="blessingLevels" value="24,25,26,27,28"></label>
-      <label>태양의 가호 사용할 레벨 (쉼표로 구분): <input type="text" id="favourLevels" value="27,28,29"></label>
+      <label class="blessing">태양의 축복 가격: <input type="number" id="blessingPrice" value="10000"></label>
+      <label class="favour">태양의 가호 가격: <input type="number" id="favourPrice" value="150000"></label>
+      <label class="blessing">태양의 축복 사용할 레벨 (쉼표로 구분): <input type="text" id="blessingLevels" value="24,25,26,27,28"></label>
+      <label class="favour">태양의 가호 사용할 레벨 (쉼표로 구분): <input type="text" id="favourLevels" value="27,28,29"></label>
       <button onclick="runSimulation()">시뮬레이션 실행</button>
     </div>
-    
-    <div>
-      <pre id="result"></pre>
-      <canvas id="histChart" width="600" height="300"></canvas>
-    </div>
+
+    <pre id="result"></pre>
+    <canvas id="histChart" width="600" height="300"></canvas>
   </div>
 
 <script>
@@ -108,15 +166,14 @@
   }
 
   function parseSet(input) {
-  //파싱 처리 -> 모든 공백 제거 후, 쉼표로 분리
-  return new Set(
-    input
-      .replace(/\s+/g, '')
-      .split(',')
-      .map(x => parseInt(x))
-      .filter(x => !isNaN(x))
-  );
-}
+    return new Set(
+      input
+        .replace(/\s+/g, '')
+        .split(',')
+        .map(x => parseInt(x))
+        .filter(x => !isNaN(x))
+    );
+  }
 
   function simulate_upgrade(path, blessing_levels, favour_levels, blessing_price, favour_price) {
     let level = path.start_level;
@@ -160,7 +217,7 @@
         }
       } else {
         if ([10, 20, 30].includes(level) || useFavour) {
-          //pass
+          // do nothing
         } else if ((Math.random() < 0.8 && level < 25) || level >= 25) {
           level -= 1;
         }
@@ -319,7 +376,7 @@
           tooltip: { enabled: true },
           title: {
             display: true,
-            text: `비용 분포 히스토그램 (${num_runs.toLocaleString()}개 샘플)`,
+            text: `비용 분포 및 히스토그램 (${num_runs.toLocaleString()}개 샘플)`,
             font: { size: 18 }
           }
         }
