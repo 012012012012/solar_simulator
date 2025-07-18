@@ -44,10 +44,10 @@
       <label>시작 레벨: <input type="number" id="startLevel" value="20"></label>
       <label>목표 레벨: <input type="number" id="endLevel" value="30"></label>
       <label>시도 횟수 (num_runs): <input type="number" id="numRuns" value="10000" readonly style="background-color: #eee; color: #555;"></label>
-      <label>Blessing 가격: <input type="number" id="blessingPrice" value="10000"></label>
-      <label>Favour 가격: <input type="number" id="favourPrice" value="150000"></label>
-      <label>Blessing 레벨 (쉼표로 구분): <input type="text" id="blessingLevels" value="24,25,26,27,28"></label>
-      <label>Favour 레벨 (쉼표로 구분): <input type="text" id="favourLevels" value="27,28,29"></label>
+      <label>태양의 축복 가격: <input type="number" id="blessingPrice" value="10000"></label>
+      <label>태양의 가호 가격: <input type="number" id="favourPrice" value="150000"></label>
+      <label>태양의 축복 사용할 레벨 (쉼표로 구분): <input type="text" id="blessingLevels" value="24,25,26,27,28"></label>
+      <label>태양의 가호 사용할 레벨 (쉼표로 구분): <input type="text" id="favourLevels" value="27,28,29"></label>
       <button onclick="runSimulation()">시뮬레이션 실행</button>
     </div>
     
@@ -108,10 +108,10 @@
   }
 
   function parseSet(input) {
-  // 모든 공백 제거 후 쉼표로 분리
+  //파싱 처리 -> 모든 공백 제거 후, 쉼표로 분리
   return new Set(
     input
-      .replace(/\s+/g, '') // 공백 모두 제거
+      .replace(/\s+/g, '')
       .split(',')
       .map(x => parseInt(x))
       .filter(x => !isNaN(x))
@@ -160,7 +160,7 @@
         }
       } else {
         if ([10, 20, 30].includes(level) || useFavour) {
-          // do nothing
+          //pass
         } else if ((Math.random() < 0.8 && level < 25) || level >= 25) {
           level -= 1;
         }
@@ -244,7 +244,6 @@
     const max_cost = Math.max(...total_token_lst);
     const std = Math.sqrt(total_token_lst.reduce((sum, val) => sum + (val - total_cost) ** 2, 0) / num_runs);
 
-    // 결과 출력에 아이템 적용 레벨 추가
     let resultText =
       `Simulated ${num_runs.toLocaleString()} runs from Level ${path.start_level.toLocaleString()} to ${path.end_level.toLocaleString()}:\n`;
 
@@ -320,7 +319,7 @@
           tooltip: { enabled: true },
           title: {
             display: true,
-            text: `비용 분포 및 히스토그램 (${num_runs.toLocaleString()}개 샘플)`,
+            text: `비용 분포 히스토그램 (${num_runs.toLocaleString()}개 샘플)`,
             font: { size: 18 }
           }
         }
