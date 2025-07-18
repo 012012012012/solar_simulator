@@ -1,123 +1,110 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
   <title>강화 시뮬레이터</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
+      background-color: #edf0c0;
       margin: 0;
       padding: 40px;
-      background-color: #edf0c0;
       display: flex;
       justify-content: center;
       align-items: flex-start;
       min-height: 100vh;
     }
-
     .card {
-      background-color: white;
+      background: white;
       padding: 30px;
       border-radius: 12px;
       box-shadow: 0 0 12px rgba(0,0,0,0.15);
-      max-width: 800px;
       width: 100%;
-      text-align: left;
+      max-width: 900px;
       box-sizing: border-box;
     }
-
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
     .form-wrapper {
       display: flex;
       flex-direction: column;
       gap: 10px;
       margin-bottom: 20px;
     }
-
-    .form-wrapper label {
-      display: block;
-      width: 100%;
+    label {
+      display: flex;
+      align-items: center;
       font-weight: normal;
     }
-
     input[type="number"], input[type="text"] {
-      width: 150px;
-      padding: 4px 6px;
       margin-left: 10px;
+      padding: 4px 6px;
       font-size: 14px;
+      width: 150px;
     }
-
+    .blessing { color: #321ee9; font-weight: bold; }
+    .favour { color: #e91eac; font-weight: bold; }
     button {
-      width: 160px;
+      align-self: flex-start;
       padding: 8px 12px;
       font-size: 16px;
-      cursor: pointer;
-      margin-top: 10px;
-      align-self: flex-start;
       background-color: #4caf50;
       color: white;
       border: none;
       border-radius: 6px;
-      transition: background-color 0.3s ease;
+      cursor: pointer;
+      transition: background-color 0.3s;
     }
-    button:hover {
-      background-color: #45a049;
-    }
-
+    button:hover { background-color: #45a049; }
     #result {
       white-space: pre-wrap;
-      background-color: #f9f9f9;
-      padding: 15px;
+      background: #f9f9f9;
       border: 1px solid #ddd;
+      padding: 15px;
+      font-family: monospace;
+      font-size: 14px;
       height: 250px;
       overflow-y: auto;
       margin-bottom: 30px;
-      font-family: monospace;
-      font-size: 14px;
     }
-
     canvas#histChart {
-      background-color: white;
+      background: white;
       border-radius: 12px;
       box-shadow: 0 0 8px rgba(0,0,0,0.1);
       max-width: 100%;
       height: 380px !important;
     }
-
-    /* 태양의 축복 관련 파란색 */
-    label.blessing {
-      color: #321ee9;
-      font-weight: bold;
+    @media (max-width: 600px) {
+      canvas#histChart {
+      height: 240px !important;
+      width: 100% !important;
     }
-
-    /* 태양의 가호 관련 분홍색 */
-    label.favour {
-      color: #e91eac;
-      font-weight: bold;
-    }
+}
   </style>
 </head>
 <body>
   <div class="card">
-    <h1 style="text-align:center; margin-bottom: 30px;">강화 시뮬레이터</h1>
-
+    <h1>강화 시뮬레이터</h1>
     <div class="form-wrapper">
       <label>시작 레벨: <input type="number" id="startLevel" value="20"></label>
       <label>목표 레벨: <input type="number" id="endLevel" value="30"></label>
-      <label>시도 횟수 (num_runs): <input type="number" id="numRuns" value="10000" readonly style="background-color: #eee; color: #555;"></label>
+      <label>시도 횟수: <input type="number" id="numRuns" value="10000" readonly style="background:#eee; color:#555;"></label>
       <label class="blessing">태양의 축복 가격: <input type="number" id="blessingPrice" value="10000"></label>
       <label class="favour">태양의 가호 가격: <input type="number" id="favourPrice" value="150000"></label>
-      <label class="blessing">태양의 축복 사용할 레벨 (쉼표로 구분): <input type="text" id="blessingLevels" value="24,25,26,27,28"></label>
-      <label class="favour">태양의 가호 사용할 레벨 (쉼표로 구분): <input type="text" id="favourLevels" value="27,28,29"></label>
+      <label class="blessing">축복 사용 레벨: <input type="text" id="blessingLevels" value="24,25,26,27,28"></label>
+      <label class="favour">가호 사용 레벨: <input type="text" id="favourLevels" value="27,28,29"></label>
       <button onclick="runSimulation()">시뮬레이션 실행</button>
     </div>
-
     <pre id="result"></pre>
     <canvas id="histChart" width="600" height="300"></canvas>
   </div>
 
 <script>
-  const upgrade_data = {
+const upgrade_data = {
   	0: {"token": 100, "solar": 0, "probability": 100},
   	1: {"token": 100, "solar": 0, "probability": 100},
   	2: {"token": 100, "solar": 0, "probability": 100},
