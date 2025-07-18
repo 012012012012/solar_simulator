@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>태양석 강화 시뮬레이터</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -44,10 +44,25 @@
       margin-left: 10px;
       padding: 4px 6px;
       font-size: 14px;
-      width: 150px;
+      width: 100px;
     }
-    .blessing { color: #321ee9; font-weight: bold; }
-    .favour { color: #e91eac; font-weight: bold; }
+    input.long-input {
+      width: 100%;
+      max-width: 300px;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .blessing {
+      color: #321ee9;
+      font-weight: bold;
+    }
+    .favour {
+      color: #e91eac;
+      font-weight: bold;
+    }
     button {
       align-self: flex-start;
       padding: 8px 12px;
@@ -59,7 +74,9 @@
       cursor: pointer;
       transition: background-color 0.3s;
     }
-    button:hover { background-color: #45a049; }
+    button:hover {
+      background-color: #45a049;
+    }
     #result {
       white-space: pre-wrap;
       background: #f9f9f9;
@@ -77,11 +94,6 @@
       box-shadow: 0 0 8px rgba(0,0,0,0.1);
       max-width: 100%;
       margin-bottom: 30px;
-    }
-    canvas#histChart {
-      height: 420px !important;
-    }
-    canvas#solarChart {
       height: 420px !important;
     }
     @media (max-width: 600px) {
@@ -95,316 +107,323 @@
   <div class="card">
     <h1>태양석 강화 시뮬레이터</h1>
     <div class="form-wrapper">
-      <label>시작 레벨: <input type="number" id="startLevel" value="20"></label>
-      <label>목표 레벨: <input type="number" id="endLevel" value="30"></label>
-      <label>시뮬 횟수: <input type="number" id="numRuns" value="1000" readonly style="background:#eee; color:#555;"></label>
-      <label class="blessing">태양의 축복 가격: <input type="number" id="blessingPrice" value="10000"></label>
-      <label class="favour">태양의 가호 가격: <input type="number" id="favourPrice" value="150000"></label>
-      <label class="blessing">축복 사용 레벨: <input type="text" id="blessingLevels" value="24,25,26,27,28"></label>
-      <label class="favour">가호 사용 레벨: <input type="text" id="favourLevels" value="27,28,29"></label>
-      <button onclick="runSimulation()">시뮬레이션 실행</button>
+      <label>시작 레벨: <input type="number" id="startLevel" value="20" /></label>
+      <label>목표 레벨: <input type="number" id="endLevel" value="30" /></label>
+      <label>시뮬 횟수: <input type="number" id="numRuns" value="1000" readonly style="background:#eee; color:#555;" /></label>
+      <label class="blessing">축복 가격: <input type="number" id="blessingPrice" value="10000" /></label>
+      <label class="favour">가호 가격: <input type="number" id="favourPrice" value="150000" /></label>
+      <div class="input-group">
+        <label for="blessingLevels" class="blessing">축복 사용 레벨:</label>
+        <input type="text" id="blessingLevels" class="long-input" value="24,25,26,27,28" />
+      </div>
+      <div class="input-group">
+        <label for="favourLevels" class="favour">가호 사용 레벨:</label>
+        <input type="text" id="favourLevels" class="long-input" value="27,28,29" />
+      </div>
+      <button onclick="runSimulation()">Run Simulation</button>
     </div>
     <pre id="result"></pre>
-    <canvas id="histChart" width="600" height="300"></canvas>
-    <canvas id="solarChart" width="600" height="300"></canvas> <!-- 🔹추가된 그래프 -->
+    <canvas id="histChart"></canvas>
+    <canvas id="solarChart"></canvas>
   </div>
 
-<script>
-const upgrade_data = {
-  	0: {"token": 100, "solar": 0, "probability": 100},
-  	1: {"token": 100, "solar": 0, "probability": 100},
-  	2: {"token": 100, "solar": 0, "probability": 100},
-  	3: {"token": 200, "solar": 0, "probability": 90},
-  	4: {"token": 400, "solar": 0, "probability": 70},
-  	5: {"token": 500, "solar": 0, "probability": 60},
-  	6: {"token": 700, "solar": 0, "probability": 45},
-  	7: {"token": 700, "solar": 0, "probability": 45},
-  	8: {"token": 700, "solar": 0, "probability": 45},
-  	9: {"token": 700, "solar": 0, "probability": 45},
-  	10: {"token": 700, "solar": 0, "probability": 45},
-  	11: {"token": 700, "solar": 0, "probability": 45},
-  	12: {"token": 800, "solar": 0, "probability": 40},
-  	13: {"token": 800, "solar": 0, "probability": 40},
-  	14: {"token": 800, "solar": 0, "probability": 40},
-  	15: {"token": 1000, "solar": 16, "probability": 40},
-  	16: {"token": 1000, "solar": 17, "probability": 35},
-  	17: {"token": 1000, "solar": 18, "probability": 35},
-  	18: {"token": 1000, "solar": 19, "probability": 35},
-  	19: {"token": 1000, "solar": 20, "probability": 35},
-  	20: {"token": 1000, "solar": 21, "probability": 35},
-  	21: {"token": 2000, "solar": 22, "probability": 35},
-  	22: {"token": 2000, "solar": 23, "probability": 30},
-  	23: {"token": 2000, "solar": 24, "probability": 30},
-  	24: {"token": 2000, "solar": 25, "probability": 30},
-  	25: {"token": 2000, "solar": 26, "probability": 30},
-  	26: {"token": 2000, "solar": 27, "probability": 30},
-  	27: {"token": 2000, "solar": 28, "probability": 25},
-  	28: {"token": 2000, "solar": 29, "probability": 25},
-  	29: {"token": 2000, "solar": 30, "probability": 25},
-  	30: {"token": 2000, "solar": 31, "probability": 25},
-  	31: {"token": 4000, "solar": 32, "probability": 25},
-  	32: {"token": 4000, "solar": 33, "probability": 25},
-  	33: {"token": 4000, "solar": 34, "probability": 25},
-  	34: {"token": 4000, "solar": 35, "probability": 25},
-  	35: {"token": 4000, "solar": 36, "probability": 25},
-  	36: {"token": 4000, "solar": 37, "probability": 25},
-  	37: {"token": 4000, "solar": 38, "probability": 25},
-  	38: {"token": 4000, "solar": 39, "probability": 25},
-  	39: {"token": 4000, "solar": 40, "probability": 25},
-  };
+  <script>
+    const upgradeData = {
+      0: {token:100, solar:0, probability:100},
+      1: {token:100, solar:0, probability:100},
+      2: {token:100, solar:0, probability:100},
+      3: {token:200, solar:0, probability:90},
+      4: {token:400, solar:0, probability:70},
+      5: {token:500, solar:0, probability:60},
+      6: {token:700, solar:0, probability:45},
+      7: {token:700, solar:0, probability:45},
+      8: {token:700, solar:0, probability:45},
+      9: {token:700, solar:0, probability:45},
+      10: {token:700, solar:0, probability:45},
+      11: {token:700, solar:0, probability:45},
+      12: {token:800, solar:0, probability:40},
+      13: {token:800, solar:0, probability:40},
+      14: {token:800, solar:0, probability:40},
+      15: {token:1000, solar:16, probability:40},
+      16: {token:1000, solar:17, probability:35},
+      17: {token:1000, solar:18, probability:35},
+      18: {token:1000, solar:19, probability:35},
+      19: {token:1000, solar:20, probability:35},
+      20: {token:1000, solar:21, probability:35},
+      21: {token:2000, solar:22, probability:35},
+      22: {token:2000, solar:23, probability:30},
+      23: {token:2000, solar:24, probability:30},
+      24: {token:2000, solar:25, probability:30},
+      25: {token:2000, solar:26, probability:30},
+      26: {token:2000, solar:27, probability:30},
+      27: {token:2000, solar:28, probability:25},
+      28: {token:2000, solar:29, probability:25},
+      29: {token:2000, solar:30, probability:25},
+      30: {token:2000, solar:31, probability:25},
+      31: {token:4000, solar:32, probability:25},
+      32: {token:4000, solar:33, probability:25},
+      33: {token:4000, solar:34, probability:25},
+      34: {token:4000, solar:35, probability:25},
+      35: {token:4000, solar:36, probability:25},
+      36: {token:4000, solar:37, probability:25},
+      37: {token:4000, solar:38, probability:25},
+      38: {token:4000, solar:39, probability:25},
+      39: {token:4000, solar:40, probability:25},
+    };
 
-
-function item_cost(level) {
-  if (level <= 9) return 5;
-  if (level <= 18) return 10;
-  return 15;
-}
-
-function parseSet(input) {
-  return new Set(input.replace(/\s+/g, '').split(',').map(x => parseInt(x)).filter(x => !isNaN(x)));
-}
-
-function simulate_upgrade(path, blessing_levels, favour_levels, blessing_price, favour_price) {
-    let level = path.start_level;
-    const target = path.end_level;
-    let attempts = 0;
-    let total_token = 0;
-    let total_solar = 0;
-    let blessing_used = 0;
-    let favour_used = 0;
-    let grade_level = [10, 20, 30];
-
-    while (level < target) {
-      if (grade_level.includes(level) && level !== path.start_level) {
-        total_token += 30520;
-        grade_level = grade_level.filter(g => g !== level);
-      }
-
-      attempts++;
-      const stage = upgrade_data[level];
-
-      total_token += stage.token;
-      total_solar += stage.solar;
-
-      const success = Math.random() < stage.probability / 100;
-
-      const useFavour = favour_levels && favour_levels.has(level);
-      const useBlessing = blessing_levels && blessing_levels.has(level);
-
-      favour_used += useFavour ? item_cost(level) : 0;
-      blessing_used += useBlessing ? item_cost(level) : 0;
-
-      if (success) {
-        level++;
-        if (useBlessing) {
-          const roll = Math.random();
-          let extra = 0;
-          if (roll < 1 / 6) extra = 2;
-          else if (roll < (1 / 6 + 1 / 3)) extra = 1;
-          const max_limit = target;
-          level = Math.min(level + extra, max_limit);
-        }
-      } else {
-        if ([10, 20, 30].includes(level) || useFavour) {
-          //pass
-        } else if ((Math.random() < 0.8 && level < 25) || level >= 25) {
-          level -= 1;
-        }
-      }
+    function itemCost(level) {
+      if (level <= 9) return 5;
+      if (level <= 18) return 10;
+      return 15;
     }
 
-    return [attempts, total_token, total_solar, blessing_used, favour_used];
-  }
-
-
-let chartInstance = null;
-let solarChartInstance = null;
-function formatNumberShort(num) {
-  if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
-  if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
-  return num.toString();
-}
-
-function createHistogram(data, binCount) {
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const binSize = (max - min) / binCount;
-  const bins = new Array(binCount).fill(0);
-
-  data.forEach(value => {
-    let idx = Math.floor((value - min) / binSize);
-    if (idx === binCount) idx = binCount - 1;
-    bins[idx]++;
-  });
-  const labels = [];
-  for (let i = 0; i < binCount; i++) {
-    const rangeStart = min + binSize * i;
-    const rangeEnd = rangeStart + binSize;
-    labels.push(`${formatNumberShort(Math.round(rangeStart))}~${formatNumberShort(Math.round(rangeEnd))}`);
-  }
-  return { bins, labels };
-}
-
-function smoothLine(data, windowSize = 10) {
-  const smoothed = [];
-  for (let i = 0; i < data.length; i++) {
-    let sum = 0, count = 0;
-    for (let j = i - Math.floor(windowSize / 2); j <= i + Math.floor(windowSize / 2); j++) {
-      if (j >= 0 && j < data.length) {
-        sum += data[j];
-        count++;
-      }
+    function parseLevelSet(input) {
+      return new Set(
+        input.split(',').map(x => x.trim()).map(Number).filter(x => !isNaN(x))
+      );
     }
-    smoothed.push(sum / count);
-  }
-  return smoothed;
-}
 
-function run_simulations(path, num_runs, blessing_levels, favour_levels, blessing_price, favour_price) {
-  let total_attempts = 0, total_tokens = 0, total_solars = 0, total_blessings = 0, total_favours = 0;
-  const total_token_lst = [], solar_lst = [];
+    function simulateUpgrade(path, blessingLevels, favourLevels) {
+      let level = path.startLevel;
+      const target = path.endLevel;
 
-  for (let i = 0; i < num_runs; i++) {
-    const [attempts, tokens, solars, blessings, favours] = simulate_upgrade(path, blessing_levels, favour_levels, blessing_price, favour_price);
-    total_attempts += attempts;
-    total_tokens += tokens;
-    total_solars += solars;
-    total_blessings += blessings;
-    total_favours += favours;
-    total_token_lst.push(tokens + blessings * blessing_price + favours * favour_price);
-    solar_lst.push(solars);
-  }
+      let attempts = 0;
+      let totalToken = 0;
+      let totalSolar = 0;
+      let blessingUsed = 0;
+      let favourUsed = 0;
 
-  const avg_attempts = total_attempts / num_runs;
-  const avg_tokens = total_tokens / num_runs;
-  const avg_solars = total_solars / num_runs;
-  const avg_blessings = total_blessings / num_runs;
-  const avg_favours = total_favours / num_runs;
-  const total_cost = avg_tokens + avg_blessings * blessing_price + avg_favours * favour_price;
-  const min_cost = Math.min(...total_token_lst);
-  const max_cost = Math.max(...total_token_lst);
-  const std = Math.sqrt(total_token_lst.reduce((sum, val) => sum + (val - total_cost) ** 2, 0) / num_runs);
+      let gradeLevels = [10, 20, 30];
 
-  let resultText = `Simulated ${num_runs.toLocaleString()} runs from Level ${path.start_level} to ${path.end_level}:\n`;
-  if (blessing_levels.size > 0) resultText += `* Blessing at: [${[...blessing_levels].sort((a,b)=>a-b)}]\n`;
-  if (favour_levels.size > 0) resultText += `* Favour at: [${[...favour_levels].sort((a,b)=>a-b)}]\n`;
-  resultText += `\nAverage Attempts >>> ${avg_attempts.toFixed(2)}\n` +
-    `Average Token Cost >>> ${Math.round(avg_tokens).toLocaleString()}\n` +
-    `Average Solar Energy >>> ${Math.round(avg_solars).toLocaleString()}\n` +
-    `Avg Blessings Used >>> ${Math.round(avg_blessings)}\n` +
-    `Avg Favours Used >>> ${Math.round(avg_favours)}\n\n` +
-    `Total Estimated Cost >>> ${Math.round(total_cost).toLocaleString()}\n` +
-    `Best Case >>> ${min_cost.toLocaleString()}\n` +
-    `Worst Case >>> ${max_cost.toLocaleString()}\n` +
-    `Std Dev >>> ${Math.round(std).toLocaleString()}`;
+      while (level < target) {
+        if (gradeLevels.includes(level) && level !== path.startLevel) {
+          totalToken += 30520;
+          gradeLevels = gradeLevels.filter(g => g !== level);
+        }
 
-  document.getElementById("result").textContent = resultText;
+        attempts++;
+        const stage = upgradeData[level];
+        totalToken += stage.token;
+        totalSolar += stage.solar;
 
-  const ctx = document.getElementById('histChart').getContext('2d');
-  if (chartInstance) chartInstance.destroy();
-  const binCount = 50;
-  const { bins, labels } = createHistogram(total_token_lst, binCount);
-  const smoothBins = smoothLine(bins, 5);
-  chartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          type: 'bar',
-          label: '데이터 수',
-          data: bins,
-          backgroundColor: 'rgba(75, 192, 192, 0.6)',
-          borderWidth: 1,
+        const success = Math.random() < stage.probability / 100;
+        const useFavour = favourLevels.has(level);
+        const useBlessing = blessingLevels.has(level);
+
+        favourUsed += useFavour ? itemCost(level) : 0;
+        blessingUsed += useBlessing ? itemCost(level) : 0;
+
+        if (success) {
+          level++;
+          if (useBlessing) {
+            const roll = Math.random();
+            let extra = 0;
+            if (roll < 1 / 6) extra = 2;
+            else if (roll < 0.5) extra = 1;
+            level = Math.min(level + extra, target);
+          }
+        } else {
+          if ([10, 20, 30].includes(level) || useFavour) {
+		//pass
+          } else if ((Math.random() < 0.8 && level < 25) || level >= 25) {
+            level--;
+          }
+        }
+      }
+
+      return [attempts, totalToken, totalSolar, blessingUsed, favourUsed];
+    }
+
+    function formatShortNumber(num) {
+      if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+      if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+      return num.toString();
+    }
+
+    function createHistogram(data, binCount) {
+      const min = Math.min(...data);
+      const max = Math.max(...data);
+      const binSize = (max - min) / binCount;
+      const bins = new Array(binCount).fill(0);
+
+      data.forEach(value => {
+        let idx = Math.floor((value - min) / binSize);
+        if (idx === binCount) idx = binCount - 1;
+        bins[idx]++;
+      });
+
+      const labels = [];
+      for (let i = 0; i < binCount; i++) {
+        const start = min + binSize * i;
+        const end = start + binSize;
+        labels.push(`${formatShortNumber(Math.round(start))}~${formatShortNumber(Math.round(end))}`);
+      }
+      return { bins, labels };
+    }
+
+    function smoothLine(data, windowSize = 10) {
+      const smoothed = [];
+      for (let i = 0; i < data.length; i++) {
+        let sum = 0, count = 0;
+        for (let j = i - Math.floor(windowSize/2); j <= i + Math.floor(windowSize/2); j++) {
+          if (j >= 0 && j < data.length) {
+            sum += data[j];
+            count++;
+          }
+        }
+        smoothed.push(sum / count);
+      }
+      return smoothed;
+    }
+
+    let histChart = null;
+    let solarChart = null;
+
+    function runSimulations(path, numRuns, blessingLevels, favourLevels, blessingPrice, favourPrice) {
+      let totalAttempts = 0, totalTokens = 0, totalSolars = 0, totalBlessings = 0, totalFavours = 0;
+      const costList = [];
+      const solarList = [];
+
+      for (let i = 0; i < numRuns; i++) {
+        const [attempts, tokens, solars, blessings, favours] = simulateUpgrade(path, blessingLevels, favourLevels);
+        totalAttempts += attempts;
+        totalTokens += tokens;
+        totalSolars += solars;
+        totalBlessings += blessings;
+        totalFavours += favours;
+
+        const totalCost = tokens + blessings * blessingPrice + favours * favourPrice;
+        costList.push(totalCost);
+        solarList.push(solars);
+      }
+
+      const avgAttempts = totalAttempts / numRuns;
+      const avgTokens = totalTokens / numRuns;
+      const avgSolars = totalSolars / numRuns;
+      const avgBlessings = totalBlessings / numRuns;
+      const avgFavours = totalFavours / numRuns;
+
+      const meanCost = avgTokens + avgBlessings * blessingPrice + avgFavours * favourPrice;
+      const minCost = Math.min(...costList);
+      const maxCost = Math.max(...costList);
+      const stdDev = Math.sqrt(costList.reduce((acc, val) => acc + (val - meanCost) ** 2, 0) / numRuns);
+
+      let resultText = `Simulated ${numRuns.toLocaleString()} runs from Level ${path.startLevel} to ${path.endLevel}:\n`;
+      if (blessingLevels.size > 0) resultText += `* Blessing at: [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
+      if (favourLevels.size > 0) resultText += `* Favour at: [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
+      resultText +=
+        `\nAverage Attempts >>> ${avgAttempts.toFixed(2)}\n` +
+        `Average Token Cost >>> ${Math.round(avgTokens).toLocaleString()}\n` +
+        `Average Solar Energy >>> ${Math.round(avgSolars).toLocaleString()}\n` +
+        `Avg Blessings Used >>> ${avgBlessings.toFixed(2)}\n` +
+        `Avg Favours Used >>> ${avgFavours.toFixed(2)}\n\n` +
+        `Total Estimated Cost >>> ${Math.round(meanCost).toLocaleString()}\n` +
+        `Best Case >>> ${minCost.toLocaleString()}\n` +
+        `Worst Case >>> ${maxCost.toLocaleString()}\n` +
+        `Std Dev >>> ${Math.round(stdDev).toLocaleString()}`;
+
+      document.getElementById("result").textContent = resultText;
+
+      const histCtx = document.getElementById("histChart").getContext("2d");
+      if(histChart) histChart.destroy();
+      const histData = createHistogram(costList, 50);
+      histChart = new Chart(histCtx, {
+        type: "bar",
+        data: {
+          labels: histData.labels,
+          datasets: [
+            {
+              label: "데이터 수",
+              data: histData.bins,
+              backgroundColor: "rgba(75, 192, 192, 0.6)",
+              borderWidth: 1,
+            },
+            {
+              type: "line",
+              label: "이동평균",
+              data: smoothLine(histData.bins, 5),
+              borderColor: "rgba(255, 99, 132, 1)",
+              borderWidth: 2,
+              fill: false,
+              tension: 0.3,
+              yAxisID: "y",
+            },
+          ],
         },
-        {
-          type: 'line',
-          label: '이동평균',
-          data: smoothBins,
-          borderColor: 'rgba(255, 99, 132, 1)',
-          borderWidth: 2,
-          fill: false,
-          tension: 0.3,
-          yAxisID: 'y',
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true, title: { display: true} },
-        x: { display: false }
-      },
-      plugins: {
-        legend: { display: true },
-        title: {
-          display: true,
-          text: `돌의 징표`,
-          font: { size: 18 }
-        }
-      }
-    }
-  });
-
-  const solarCtx = document.getElementById('solarChart').getContext('2d');
-  if (solarChartInstance) solarChartInstance.destroy();
-  const { bins: solarBins, labels: solarLabels } = createHistogram(solar_lst, binCount);
-  const smoothSolarBins = smoothLine(solarBins, 5);
-  solarChartInstance = new Chart(solarCtx, {
-    type: 'bar',
-    data: {
-      labels: solarLabels,
-      datasets: [
-        {
-          type: 'bar',
-          label: '데이터 수',
-          data: solarBins,
-          backgroundColor: 'rgba(255, 206, 86, 0.6)',
-          borderWidth: 1,
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true, title: { display: true } },
+            x: { display: false },
+          },
+          plugins: {
+            legend: { display: true },
+            title: {
+              display: true,
+              text: "돌의 징표 환산값",
+              font: { size: 18 },
+            },
+          },
         },
-        {
-          type: 'line',
-          label: '이동평균',
-          data: smoothSolarBins,
-          borderColor: 'rgba(255, 99, 132, 1)',
-          borderWidth: 2,
-          fill: false,
-          tension: 0.3,
-          yAxisID: 'y',
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true, title: { display: true } },
-        x: { display: false }
-      },
-      plugins: {
-        legend: { display: true },
-        title: {
-          display: true,
-          text: `태양 에너지`,
-          font: { size: 18 }
-        }
-      }
+      });
+
+      const solarCtx = document.getElementById("solarChart").getContext("2d");
+      if(solarChart) solarChart.destroy();
+      const solarData = createHistogram(solarList, 50);
+      solarChart = new Chart(solarCtx, {
+        type: "bar",
+        data: {
+          labels: solarData.labels,
+          datasets: [
+            {
+              label: "데이터 수",
+              data: solarData.bins,
+              backgroundColor: "rgba(255, 206, 86, 0.6)",
+              borderWidth: 1,
+            },
+            {
+              type: "line",
+              label: "이동평균",
+              data: smoothLine(solarData.bins, 5),
+              borderColor: "rgba(255, 99, 132, 1)",
+              borderWidth: 2,
+              fill: false,
+              tension: 0.3,
+              yAxisID: "y",
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true, title: { display: true } },
+            x: { display: false },
+          },
+          plugins: {
+            legend: { display: true },
+            title: {
+              display: true,
+              text: "태양의 에너지",
+              font: { size: 18 },
+            },
+          },
+        },
+      });
     }
-  });
-}
 
-function runSimulation() {
-  const path = {
-    start_level: parseInt(document.getElementById('startLevel').value),
-    end_level: parseInt(document.getElementById('endLevel').value)
-  };
-  const num_runs = parseInt(document.getElementById('numRuns').value);
-  const blessing_price = parseInt(document.getElementById('blessingPrice').value);
-  const favour_price = parseInt(document.getElementById('favourPrice').value);
-  const blessing_levels = parseSet(document.getElementById('blessingLevels').value);
-  const favour_levels = parseSet(document.getElementById('favourLevels').value);
+    function runSimulation() {
+      const path = {
+        startLevel: parseInt(document.getElementById("startLevel").value),
+        endLevel: parseInt(document.getElementById("endLevel").value),
+      };
+      const numRuns = parseInt(document.getElementById("numRuns").value);
+      const blessingPrice = parseInt(document.getElementById("blessingPrice").value);
+      const favourPrice = parseInt(document.getElementById("favourPrice").value);
+      const blessingLevels = parseLevelSet(document.getElementById("blessingLevels").value);
+      const favourLevels = parseLevelSet(document.getElementById("favourLevels").value);
 
-  run_simulations(path, num_runs, blessing_levels, favour_levels, blessing_price, favour_price);
-}
-</script>
+      runSimulations(path, numRuns, blessingLevels, favourLevels, blessingPrice, favourPrice);
+    }
+  </script>
 </body>
 </html>
