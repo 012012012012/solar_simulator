@@ -384,10 +384,10 @@
         if (blessingLevels.size > 0) text += `+* 축복 :+ [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
         if (favourLevels.size > 0) text += `+* 가호 :+ [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
         text +=
-      	  `\n+돌의 징표+ ➡\u00A0${Math.round(avgTokens).toLocaleString()}\u00A0징\n` +
-      	  `+태양의 에너지+ ➡\u00A0${Math.round(avgSolars).toLocaleString()}\u00A0개\n` +
-      	  `+태양의 축복+ ➡\u00A0${Math.round(avgBlessings)}\u00A0개\n` +
-      	  `+태양의 가호+ ➡\u00A0${Math.round(avgFavours)}\u00A0개\n\n` +
+      	  `\n+돌의 징표+ ➡\u00A0${Math.round(avgTokens).toLocaleString()}\n` +
+      	  `+태양의 에너지+ ➡\u00A0${Math.round(avgSolars).toLocaleString()}\n` +
+      	  `+태양의 축복+ ➡\u00A0${Math.round(avgBlessings)}\n` +
+      	  `+태양의 가호+ ➡\u00A0${Math.round(avgFavours)}\n\n` +
       	  `+↪추정 비용+ ➡\u00A0${Math.round(meanCost).toLocaleString()}\u00A0징\n\n` +
           `+평균 강화 횟수+ ➡\u00A0${Math.round(avgAttempts)}\u00A0회\n` +
       	  `+비용 최소값+ ➡\u00A0${minCost.toLocaleString()}\u00A0징\n` +
@@ -398,10 +398,10 @@
       if (blessingLevels.size > 0) text += `+* Blessing :+ [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
       if (favourLevels.size > 0) text += `+* Favour :+ [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
       text +=
-      	`\n+Token+ ➡\u00A0${Math.round(avgTokens).toLocaleString()}\u00A0tkn\n` +
-      	`+Solar Energy+ ➡\u00A0${Math.round(avgSolars).toLocaleString()}\u00A0energy\n` +
-      	`+Solar Blessing+ ➡\u00A0${Math.round(avgBlessings)}\u00A0bless\n` +
-      	`+Solar Favour+ ➡\u00A0${Math.round(avgFavours)}\u00A0favour\n\n` +
+      	`\n+Token+ ➡\u00A0${Math.round(avgTokens).toLocaleString()}\n` +
+      	`+Solar Energy+ ➡\u00A0${Math.round(avgSolars).toLocaleString()}\n` +
+      	`+Solar Blessing+ ➡\u00A0${Math.round(avgBlessings)}\n` +
+      	`+Solar Favour+ ➡\u00A0${Math.round(avgFavours)}\n\n` +
       	`+↪Estimated Cost+ ➡\u00A0${Math.round(meanCost).toLocaleString()}\u00A0tkn\n\n` +
         `+Attempts+ ➡\u00A0${Math.round(avgAttempts)}\n` +
       	`+Min Cost+ ➡\u00A0${minCost.toLocaleString()}\u00A0tkn\n` +
