@@ -308,9 +308,9 @@
       const maxCost = Math.max(...costList);
       const stdDev = Math.sqrt(costList.reduce((acc, val) => acc + (val - meanCost) ** 2, 0) / numRuns);
 
-      let resultText = `Simulated ${numRuns.toLocaleString()} runs from Level ${path.startLevel} to ${path.endLevel}:\n`;
-      if (blessingLevels.size > 0) resultText += `* Blessing at: [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
-      if (favourLevels.size > 0) resultText += `* Favour at: [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
+      let resultText = `Simulated from LV ${path.startLevel} to ${path.endLevel}:\n`;
+      if (blessingLevels.size > 0) resultText += `* Blessing: [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
+      if (favourLevels.size > 0) resultText += `* Favour: [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
       resultText +=
         `\nAvg Attempts >>> ${avgAttempts.toFixed(2)}\n` +
         `Avg Token Cost >>> ${Math.round(avgTokens).toLocaleString()}\n` +
