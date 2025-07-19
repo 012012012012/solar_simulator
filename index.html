@@ -183,6 +183,27 @@
       );
     }
 
+    let typingIntervalId = null;
+
+    function typeText(element, text, speed = 20) {
+      if (typingIntervalId) {
+        clearInterval(typingIntervalId);
+        typingIntervalId = null;
+      }
+
+      element.textContent = "";
+      let i = 0;
+
+      typingIntervalId = setInterval(() => {
+        element.textContent += text.charAt(i);
+        i++;
+        if (i >= text.length) {
+          clearInterval(typingIntervalId);
+          typingIntervalId = null;
+        }
+      }, speed);
+    }
+
     function simulateUpgrade(path, blessingLevels, favourLevels) {
       let level = path.startLevel;
       const target = path.endLevel;
@@ -322,7 +343,8 @@
         //`비용 최대값 >>> ${maxCost.toLocaleString()}\n` +
         `표준편차 >>> ${Math.round(stdDev).toLocaleString()}`;
 
-      document.getElementById("result").textContent = resultText;
+      //document.getElementById("result").textContent = resultText;
+      typeText(document.getElementById("result"), resultText, 10);
 
       const histCtx = document.getElementById("histChart").getContext("2d");
       if(histChart) histChart.destroy();
