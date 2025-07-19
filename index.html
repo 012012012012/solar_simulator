@@ -109,9 +109,10 @@
       font-family: monospace;
       font-size: 14px;
       font-weight: 550;
-      height: 270px;
+      height: 300px;
       overflow-y: auto;
       margin-bottom: 30px;
+      word-break: keep-all;
     }
     canvas {
       background: white;
@@ -262,17 +263,24 @@
         typingIntervalId = null;
       }
 
-      element.textContent = "";
+      element.innerHTML = "";
       let i = 0;
 
       typingIntervalId = setInterval(() => {
-        element.textContent += text.charAt(i);
+        element.innerHTML += text.charAt(i);
         i++;
         if (i >= text.length) {
           clearInterval(typingIntervalId);
           typingIntervalId = null;
+          applyBoldStyle(element);
         }
       }, speed);
+    }
+
+    function applyBoldStyle(element) {
+      const html = element.textContent
+        .replace(/\+([^+]+)\+/g, '<b>$1</b>');
+      element.innerHTML = html;
     }
 
     function simulateUpgrade(path, blessingLevels, favourLevels) {
@@ -372,32 +380,32 @@
     let solarChart = null;
     function makeResultText(lang, path, blessingLevels, favourLevels, avgAttempts, avgTokens, avgSolars, avgBlessings, avgFavours, meanCost, minCost, stdDev) {
       if (lang === "ko") {
-        let text = `시뮬레이션 결과 (레벨 ${path.startLevel} ➡ ${path.endLevel}):\n`;
-        if (blessingLevels.size > 0) text += `* 축복 : [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
-        if (favourLevels.size > 0) text += `* 가호 : [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
+        let text = `시뮬레이션 결과 (레벨\u00A0${path.startLevel}\u00A0➡\u00A0${path.endLevel}):\n`;
+        if (blessingLevels.size > 0) text += `+* 축복 :+ [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
+        if (favourLevels.size > 0) text += `+* 가호 :+ [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
         text +=
-      	  `\n돌의 징표 ➡ ${Math.round(avgTokens).toLocaleString()}징\n` +
-      	  `태양의 에너지 ➡ ${Math.round(avgSolars).toLocaleString()}개\n` +
-      	  `태양의 축복 ➡ ${Math.round(avgBlessings)}개\n` +
-      	  `태양의 가호 ➡ ${Math.round(avgFavours)}개\n\n` +
-      	  `↪추정 비용 ➡ ${Math.round(meanCost).toLocaleString()}징\n\n` +
-          `평균 강화 횟수 ➡ ${Math.round(avgAttempts)}회\n` +
-      	  `비용 최소값 ➡ ${minCost.toLocaleString()}징\n` +
-      	  `표준편차 ➡ ${Math.round(stdDev).toLocaleString()}징`;
+      	  `\n+돌의 징표+ ➡\u00A0${Math.round(avgTokens).toLocaleString()}\u00A0징\n` +
+      	  `+태양의 에너지+ ➡\u00A0${Math.round(avgSolars).toLocaleString()}\u00A0개\n` +
+      	  `+태양의 축복+ ➡\u00A0${Math.round(avgBlessings)}\u00A0개\n` +
+      	  `+태양의 가호+ ➡\u00A0${Math.round(avgFavours)}\u00A0개\n\n` +
+      	  `+↪추정 비용+ ➡\u00A0${Math.round(meanCost).toLocaleString()}\u00A0징\n\n` +
+          `+평균 강화 횟수+ ➡\u00A0${Math.round(avgAttempts)}\u00A0회\n` +
+      	  `+비용 최소값+ ➡\u00A0${minCost.toLocaleString()}\u00A0징\n` +
+      	  `+표준편차+ ➡\u00A0${Math.round(stdDev).toLocaleString()}\u00A0징`;
         return text;
     } else if (lang === "en") {
-      let text = `Simulated from ${path.startLevel} to ${path.endLevel}:\n`;
-      if (blessingLevels.size > 0) text += `* Blessing : [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
-      if (favourLevels.size > 0) text += `* Favour : [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
+      let text = `Simulated (level\u00A0${path.startLevel}\u00A0➡\u00A0${path.endLevel}):\n`;
+      if (blessingLevels.size > 0) text += `+* Blessing :+ [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
+      if (favourLevels.size > 0) text += `+* Favour :+ [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
       text +=
-      	`\nToken ➡ ${Math.round(avgTokens).toLocaleString()} tkn\n` +
-      	`Solar Energy ➡ ${Math.round(avgSolars).toLocaleString()} energy\n` +
-      	`Solar Blessing ➡ ${Math.round(avgBlessings)} bless\n` +
-      	`Solar Favour ➡ ${Math.round(avgFavours)} favour\n\n` +
-      	`↪Estimated Cost ➡ ${Math.round(meanCost).toLocaleString()} tkn\n\n` +
-        `Attempts ➡ ${Math.round(avgAttempts)}\n` +
-      	`Minimum Cost ➡ ${minCost.toLocaleString()} tkn\n` +
-      	`Std Dev ➡ ${Math.round(stdDev).toLocaleString()} tkn`;
+      	`\n+Token+ ➡\u00A0${Math.round(avgTokens).toLocaleString()}\u00A0tkn\n` +
+      	`+Solar Energy+ ➡\u00A0${Math.round(avgSolars).toLocaleString()}\u00A0energy\n` +
+      	`+Solar Blessing+ ➡\u00A0${Math.round(avgBlessings)}\u00A0bless\n` +
+      	`+Solar Favour+ ➡\u00A0${Math.round(avgFavours)}\u00A0favour\n\n` +
+      	`+↪Estimated Cost+ ➡\u00A0${Math.round(meanCost).toLocaleString()}\u00A0tkn\n\n` +
+        `+Attempts+ ➡\u00A0${Math.round(avgAttempts)}\n` +
+      	`+Minimum Cost+ ➡\u00A0${minCost.toLocaleString()}\u00A0tkn\n` +
+      	`+Std Dev+ ➡\u00A0${Math.round(stdDev).toLocaleString()}\u00A0tkn`;
       return text;
     }
   }
