@@ -313,13 +313,13 @@
       if (favourLevels.size > 0) resultText += `* 가호: [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
       resultText +=
         `\n강화 횟수 >>> ${avgAttempts.toFixed(2)}\n` +
-        `돌의 징표 >>> ${Math.round(avgTokens).toLocaleString()}\n` +
+        `돌의 징표 >>> ${Math.round(avgTokens).toLocaleString()}\n\n` +
         `태양의 에너지 >>> ${Math.round(avgSolars).toLocaleString()}\n` +
         `태양의 축복 >>> ${avgBlessings.toFixed(2)}\n` +
         `태양의 가호 >>> ${avgFavours.toFixed(2)}\n\n` +
         `추정 비용 >>> ${Math.round(meanCost).toLocaleString()}\n` +
         `비용 최소값 >>> ${minCost.toLocaleString()}\n` +
-        `비용 최대값 >>> ${maxCost.toLocaleString()}\n` +
+        //`비용 최대값 >>> ${maxCost.toLocaleString()}\n` +
         `표준편차 >>> ${Math.round(stdDev).toLocaleString()}`;
 
       document.getElementById("result").textContent = resultText;
