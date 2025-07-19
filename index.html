@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>태양석 강화 시뮬레이터</title>
+  <title>태양석 시뮬레이터</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
@@ -308,19 +308,19 @@
       const maxCost = Math.max(...costList);
       const stdDev = Math.sqrt(costList.reduce((acc, val) => acc + (val - meanCost) ** 2, 0) / numRuns);
 
-      let resultText = `Simulated from LV ${path.startLevel} to ${path.endLevel}:\n`;
-      if (blessingLevels.size > 0) resultText += `* Blessing: [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
-      if (favourLevels.size > 0) resultText += `* Favour: [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
+      let resultText = `Simulated from ${path.startLevel} to ${path.endLevel}:\n`;
+      if (blessingLevels.size > 0) resultText += `* 축복: [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
+      if (favourLevels.size > 0) resultText += `* 가호: [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
       resultText +=
-        `\nAvg Attempts >>> ${avgAttempts.toFixed(2)}\n` +
-        `Avg Token Cost >>> ${Math.round(avgTokens).toLocaleString()}\n` +
-        `Avg Solar Energy >>> ${Math.round(avgSolars).toLocaleString()}\n` +
-        `Avg Blessings >>> ${avgBlessings.toFixed(2)}\n` +
-        `Avg Favours >>> ${avgFavours.toFixed(2)}\n\n` +
-        `Estimated Cost >>> ${Math.round(meanCost).toLocaleString()}\n` +
-        `Best Case >>> ${minCost.toLocaleString()}\n` +
-        `Worst Case >>> ${maxCost.toLocaleString()}\n` +
-        `Std Dev >>> ${Math.round(stdDev).toLocaleString()}`;
+        `\n강화 횟수 >>> ${avgAttempts.toFixed(2)}\n` +
+        `돌의 징표 >>> ${Math.round(avgTokens).toLocaleString()}\n` +
+        `태양의 에너지 >>> ${Math.round(avgSolars).toLocaleString()}\n` +
+        `태양의 축복 >>> ${avgBlessings.toFixed(2)}\n` +
+        `태양의 가호 >>> ${avgFavours.toFixed(2)}\n\n` +
+        `추정 비용 >>> ${Math.round(meanCost).toLocaleString()}\n` +
+        `비용 최소값 >>> ${minCost.toLocaleString()}\n` +
+        `비용 최대값 >>> ${maxCost.toLocaleString()}\n` +
+        `표준편차 >>> ${Math.round(stdDev).toLocaleString()}`;
 
       document.getElementById("result").textContent = resultText;
 
@@ -360,7 +360,7 @@
             legend: { display: true },
             title: {
               display: true,
-              text: "돌의 징표 환산값",
+              text: "추정 비용(돌의 징표)",
               font: { size: 18 },
             },
           },
