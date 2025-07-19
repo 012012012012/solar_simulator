@@ -28,6 +28,9 @@
     h1 {
       text-align: center;
       margin-bottom: 30px;
+      font-size: 32px;
+      line-height: 1.2;
+      word-break: keep-all;
     }
     .form-wrapper {
       display: flex;
@@ -39,6 +42,12 @@
       display: flex;
       align-items: center;
       font-weight: normal;
+    }
+    .fixed-label {
+      display: inline-block;
+      width: 80px;
+      text-align: left;
+      margin-right: 10px; 
     }
     input[type="number"], input[type="text"] {
       margin-left: 10px;
@@ -65,7 +74,8 @@
     }
     button {
       align-self: flex-start;
-      padding: 8px 12px;
+      height: 36px;
+      padding: 2px 12px;
       font-size: 16px;
       background-color: #4caf50;
       color: white;
@@ -73,6 +83,19 @@
       border-radius: 6px;
       cursor: pointer;
       transition: background-color 0.3s;
+    }
+    .button-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .lang-button {
+      height: 36px;
+      min-width: 60px;
+      white-space: nowrap;
+      padding: 5px 10px;
+      font-size: 14px;
     }
     button:hover {
       background-color: #45a049;
@@ -105,22 +128,25 @@
 </head>
 <body>
   <div class="card">
-    <h1>태양석 시뮬레이터</h1>
+    <h1 data-ko="태양석 시뮬레이터" data-en="Solar Simulator">태양석 시뮬레이터</h1>
     <div class="form-wrapper">
-      <label>시작 레벨: <input type="number" id="startLevel" value="20" /></label>
-      <label>목표 레벨: <input type="number" id="endLevel" value="30" /></label>
-      <label>시뮬 횟수: <input type="number" id="numRuns" value="1000" readonly style="background:#eee; color:#555;" /></label>
-      <label class="blessing">축복 가격: <input type="number" id="blessingPrice" value="10000" /></label>
-      <label class="favour">가호 가격: <input type="number" id="favourPrice" value="150000" /></label>
+      <label data-ko="시작 레벨" data-en="Start Level"><span class="fixed-label">시작 레벨: </span><input type="number" id="startLevel" value="20" /></label>
+      <label data-ko="목표 레벨" data-en="End Level"><span class="fixed-label">목표 레벨: </span><input type="number" id="endLevel" value="30" /></label>
+      <label data-ko="시뮬 횟수" data-en="Runs num"><span class="fixed-label">시뮬 횟수: </span><input type="number" id="numRuns" value="1000" readonly style="background:#eee; color:#555;" /></label>
+      <label class="blessing" data-ko="축복 가격" data-en="Blessing price"><span class="fixed-label">축복 가격: </span><input type="number" id="blessingPrice" value="10000" /></label>
+      <label class="favour" data-ko="가호 가격" data-en="Favour price"><span class="fixed-label">가호 가격: </span><input type="number" id="favourPrice" value="150000" /></label>
       <div class="input-group">
-        <label for="blessingLevels" class="blessing">축복 사용 레벨:</label>
+        <label for="blessingLevels" class="blessing" data-ko="축복 사용 레벨" data-en="Blessing at">축복 사용 레벨:</label>
         <input type="text" id="blessingLevels" class="long-input" value="24,25,26,27,28" />
       </div>
       <div class="input-group">
-        <label for="favourLevels" class="favour">가호 사용 레벨:</label>
+        <label for="favourLevels" class="favour" data-ko="가호 사용 레벨" data-en="Favour at">가호 사용 레벨:</label>
         <input type="text" id="favourLevels" class="long-input" value="27,28,29" />
       </div>
-      <button onclick="runSimulation()">Run Simulation</button>
+      <div class="button-group">
+        <button onclick="runSimulation()">Run Simulation</button>
+        <button id="langToggle">English</button>
+      </div>
     </div>
     <pre id="result"></pre>
     <canvas id="histChart"></canvas>
@@ -299,6 +325,37 @@
 
     let histChart = null;
     let solarChart = null;
+    function makeResultText(lang, path, blessingLevels, favourLevels, avgAttempts, avgTokens, avgSolars, avgBlessings, avgFavours, meanCost, minCost, stdDev) {
+      if (lang === "ko") {
+        let text = `Simulated from ${path.startLevel} to ${path.endLevel}:\n`;
+        if (blessingLevels.size > 0) text += `* 축복: [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
+        if (favourLevels.size > 0) text += `* 가호: [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
+        text +=
+      	  `\n강화 횟수 >>> ${avgAttempts.toFixed(2)}\n` +
+      	  `돌의 징표 >>> ${Math.round(avgTokens).toLocaleString()}\n\n` +
+      	  `태양의 에너지 >>> ${Math.round(avgSolars).toLocaleString()}\n` +
+      	  `태양의 축복 >>> ${avgBlessings.toFixed(2)}\n` +
+      	  `태양의 가호 >>> ${avgFavours.toFixed(2)}\n\n` +
+      	  `추정 비용 >>> ${Math.round(meanCost).toLocaleString()}\n` +
+      	  `비용 최소값 >>> ${minCost.toLocaleString()}\n` +
+      	  `표준편차 >>> ${Math.round(stdDev).toLocaleString()}`;
+        return text;
+    } else if (lang === "en") {
+      let text = `Simulated from ${path.startLevel} to ${path.endLevel}:\n`;
+      if (blessingLevels.size > 0) text += `* Blessing: [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
+      if (favourLevels.size > 0) text += `* Favour: [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
+      text +=
+      	`\nAttempts >>> ${avgAttempts.toFixed(2)}\n` +
+      	`Token >>> ${Math.round(avgTokens).toLocaleString()}\n\n` +
+      	`Solar Energy >>> ${Math.round(avgSolars).toLocaleString()}\n` +
+      	`Solar Blessing >>> ${avgBlessings.toFixed(2)}\n` +
+      	`Solar Favour >>> ${avgFavours.toFixed(2)}\n\n` +
+      	`Estimated Cost >>> ${Math.round(meanCost).toLocaleString()}\n` +
+      	`Minimum Cost >>> ${minCost.toLocaleString()}\n` +
+      	`Std Dev >>> ${Math.round(stdDev).toLocaleString()}`;
+      return text;
+    }
+  }
 
     function runSimulations(path, numRuns, blessingLevels, favourLevels, blessingPrice, favourPrice) {
       let totalAttempts = 0, totalTokens = 0, totalSolars = 0, totalBlessings = 0, totalFavours = 0;
@@ -328,41 +385,49 @@
       const minCost = Math.min(...costList);
       const maxCost = Math.max(...costList);
       const stdDev = Math.sqrt(costList.reduce((acc, val) => acc + (val - meanCost) ** 2, 0) / numRuns);
+      
+      const lang = currentLang;
 
-      let resultText = `Simulated from ${path.startLevel} to ${path.endLevel}:\n`;
-      if (blessingLevels.size > 0) resultText += `* 축복: [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
-      if (favourLevels.size > 0) resultText += `* 가호: [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
-      resultText +=
-        `\n강화 횟수 >>> ${avgAttempts.toFixed(2)}\n` +
-        `돌의 징표 >>> ${Math.round(avgTokens).toLocaleString()}\n\n` +
-        `태양의 에너지 >>> ${Math.round(avgSolars).toLocaleString()}\n` +
-        `태양의 축복 >>> ${avgBlessings.toFixed(2)}\n` +
-        `태양의 가호 >>> ${avgFavours.toFixed(2)}\n\n` +
-        `추정 비용 >>> ${Math.round(meanCost).toLocaleString()}\n` +
-        `비용 최소값 >>> ${minCost.toLocaleString()}\n` +
-        //`비용 최대값 >>> ${maxCost.toLocaleString()}\n` +
-        `표준편차 >>> ${Math.round(stdDev).toLocaleString()}`;
+      const resultText = makeResultText(lang, path, blessingLevels, favourLevels, avgAttempts, avgTokens, avgSolars, avgBlessings, avgFavours, meanCost, minCost, stdDev);
+
+      typeText(document.getElementById("result"), resultText, 0);
 
       //document.getElementById("result").textContent = resultText;
       typeText(document.getElementById("result"), resultText, 10);
+      
+      const chartText = {
+  	ko: {
+    	  histogramTitle1: "추정 비용(돌의 징표)",
+          histogramTitle2: "태양의 에너지",
+    	  dataCountLabel: "데이터 수",
+    	  movingAverageLabel: "이동평균",
+  	},
+  	en: {
+    	  histogramTitle1: "Estimated Cost (Token Stones)",
+          histogramTitle2: "Solar Energy",
+    	  dataCountLabel: "Count",
+    	  movingAverageLabel: "Moving Average",
+  	},
+      };
 
       const histCtx = document.getElementById("histChart").getContext("2d");
       if(histChart) histChart.destroy();
       const histData = createHistogram(costList, 50);
+      
       histChart = new Chart(histCtx, {
         type: "bar",
         data: {
           labels: histData.labels,
           datasets: [
             {
-              label: "데이터 수",
+              label: chartText[lang].dataCountLabel,
               data: histData.bins,
               backgroundColor: "rgba(75, 192, 192, 0.6)",
               borderWidth: 1,
             },
             {
               type: "line",
-              label: "이동평균",
+              label: chartText[lang].movingAverageLabel,
               data: smoothLine(histData.bins, 5),
               borderColor: "rgba(255, 99, 132, 1)",
               borderWidth: 2,
@@ -382,7 +447,7 @@
             legend: { display: true },
             title: {
               display: true,
-              text: "추정 비용(돌의 징표)",
+              text: chartText[lang].histogramTitle1,
               font: { size: 18 },
             },
           },
@@ -398,14 +463,14 @@
           labels: solarData.labels,
           datasets: [
             {
-              label: "데이터 수",
+              label: chartText[lang].dataCountLabel,
               data: solarData.bins,
               backgroundColor: "rgba(255, 206, 86, 0.6)",
               borderWidth: 1,
             },
             {
               type: "line",
-              label: "이동평균",
+              label: chartText[lang].movingAverageLabel,
               data: smoothLine(solarData.bins, 5),
               borderColor: "rgba(255, 99, 132, 1)",
               borderWidth: 2,
@@ -425,7 +490,7 @@
             legend: { display: true },
             title: {
               display: true,
-              text: "태양의 에너지",
+              text: chartText[lang].histogramTitle1,
               font: { size: 18 },
             },
           },
@@ -446,6 +511,22 @@
 
       runSimulations(path, numRuns, blessingLevels, favourLevels, blessingPrice, favourPrice);
     }
+    let currentLang = "ko";
+
+    document.getElementById("langToggle").addEventListener("click", () => {
+      currentLang = currentLang === "ko" ? "en" : "ko";
+      document.getElementById("langToggle").textContent = currentLang === "ko" ? "English" : "한국어";
+
+      document.querySelectorAll("[data-ko]").forEach(el => {
+        const value = el.getAttribute(`data-${currentLang}`);
+  	if (el.tagName === "LABEL" && el.children.length > 0) {
+    	  el.childNodes[0].textContent = value;
+  	} 
+	else {
+    	  el.textContent = value;
+  	}
+      });
+    });
   </script>
 </body>
 </html>
