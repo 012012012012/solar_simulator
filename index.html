@@ -312,12 +312,12 @@
       if (blessingLevels.size > 0) resultText += `* Blessing at: [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
       if (favourLevels.size > 0) resultText += `* Favour at: [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
       resultText +=
-        `\nAverage Attempts >>> ${avgAttempts.toFixed(2)}\n` +
-        `Average Token Cost >>> ${Math.round(avgTokens).toLocaleString()}\n` +
-        `Average Solar Energy >>> ${Math.round(avgSolars).toLocaleString()}\n` +
-        `Avg Blessings Used >>> ${avgBlessings.toFixed(2)}\n` +
-        `Avg Favours Used >>> ${avgFavours.toFixed(2)}\n\n` +
-        `Total Estimated Cost >>> ${Math.round(meanCost).toLocaleString()}\n` +
+        `\nAvg Attempts >>> ${avgAttempts.toFixed(2)}\n` +
+        `Avg Token Cost >>> ${Math.round(avgTokens).toLocaleString()}\n` +
+        `Avg Solar Energy >>> ${Math.round(avgSolars).toLocaleString()}\n` +
+        `Avg Blessings >>> ${avgBlessings.toFixed(2)}\n` +
+        `Avg Favours >>> ${avgFavours.toFixed(2)}\n\n` +
+        `Estimated Cost >>> ${Math.round(meanCost).toLocaleString()}\n` +
         `Best Case >>> ${minCost.toLocaleString()}\n` +
         `Worst Case >>> ${maxCost.toLocaleString()}\n` +
         `Std Dev >>> ${Math.round(stdDev).toLocaleString()}`;
