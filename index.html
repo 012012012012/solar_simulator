@@ -197,6 +197,49 @@
       39: {token:4000, solar:40, probability:25},
     };
 
+    const downgradeData = {
+      0: {probability:40},
+      1: {probability:40},
+      2: {probability:40},
+      3: {probability:40},
+      4: {probability:40},
+      5: {probability:60},
+      6: {probability:60},
+      7: {probability:60},
+      8: {probability:60},
+      9: {probability:60},
+      10: {probability:70},
+      11: {probability:70},
+      12: {probability:70},
+      13: {probability:70},
+      14: {probability:70},
+      15: {probability:80},
+      16: {probability:80},
+      17: {probability:80},
+      18: {probability:80},
+      19: {probability:80},
+      20: {probability:90},
+      21: {probability:90},
+      22: {probability:90},
+      23: {probability:90},
+      24: {probability:90},
+      25: {probability:100},
+      26: {probability:100},
+      27: {probability:100},
+      28: {probability:100},
+      29: {probability:100},
+      30: {probability:100},
+      31: {probability:100},
+      32: {probability:100},
+      33: {probability:100},
+      34: {probability:100},
+      35: {probability:100},
+      36: {probability:100},
+      37: {probability:100},
+      38: {probability:100},
+      39: {probability:100},
+    };
+	
     function itemCost(level) {
       if (level <= 9) return 5;
       if (level <= 18) return 10;
@@ -272,7 +315,7 @@
         } else {
           if ([10, 20, 30].includes(level) || useFavour) {
 		//pass
-          } else if ((Math.random() < 0.8 && level < 25) || level >= 25) {
+          } else if ((Math.random() < downgradeData[level].probability / 100 && level < 25) || level >= 25) {
             level--;
           }
         }
@@ -327,32 +370,32 @@
     let solarChart = null;
     function makeResultText(lang, path, blessingLevels, favourLevels, avgAttempts, avgTokens, avgSolars, avgBlessings, avgFavours, meanCost, minCost, stdDev) {
       if (lang === "ko") {
-        let text = `Simulated from ${path.startLevel} to ${path.endLevel}:\n`;
+        let text = `시뮬레이션 결과 (레벨 ${path.startLevel} → ${path.endLevel}):\n`;
         if (blessingLevels.size > 0) text += `* 축복: [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
         if (favourLevels.size > 0) text += `* 가호: [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
         text +=
-      	  `\n강화 횟수 >>> ${avgAttempts.toFixed(2)}\n` +
-      	  `돌의 징표 >>> ${Math.round(avgTokens).toLocaleString()}\n\n` +
-      	  `태양의 에너지 >>> ${Math.round(avgSolars).toLocaleString()}\n` +
-      	  `태양의 축복 >>> ${avgBlessings.toFixed(2)}\n` +
-      	  `태양의 가호 >>> ${avgFavours.toFixed(2)}\n\n` +
-      	  `추정 비용 >>> ${Math.round(meanCost).toLocaleString()}\n` +
-      	  `비용 최소값 >>> ${minCost.toLocaleString()}\n` +
-      	  `표준편차 >>> ${Math.round(stdDev).toLocaleString()}`;
+      	  `\n돌의 징표 > ${Math.round(avgTokens).toLocaleString()}징\n` +
+      	  `태양의 에너지 > ${Math.round(avgSolars).toLocaleString()}개\n` +
+      	  `태양의 축복 > ${Math.round(avgBlessings)}개\n` +
+      	  `태양의 가호 > ${Math.round(avgFavours)}개\n\n` +
+      	  `↪추정 비용 > ${Math.round(meanCost).toLocaleString()}징\n\n` +
+          `평균 강화 횟수 > ${Math.round(avgAttempts)}회\n` +
+      	  `비용 최소값 > ${minCost.toLocaleString()}징\n` +
+      	  `표준편차 > ${Math.round(stdDev).toLocaleString()}징`;
         return text;
     } else if (lang === "en") {
       let text = `Simulated from ${path.startLevel} to ${path.endLevel}:\n`;
       if (blessingLevels.size > 0) text += `* Blessing: [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
       if (favourLevels.size > 0) text += `* Favour: [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
       text +=
-      	`\nAttempts >>> ${avgAttempts.toFixed(2)}\n` +
-      	`Token >>> ${Math.round(avgTokens).toLocaleString()}\n\n` +
-      	`Solar Energy >>> ${Math.round(avgSolars).toLocaleString()}\n` +
-      	`Solar Blessing >>> ${avgBlessings.toFixed(2)}\n` +
-      	`Solar Favour >>> ${avgFavours.toFixed(2)}\n\n` +
-      	`Estimated Cost >>> ${Math.round(meanCost).toLocaleString()}\n` +
-      	`Minimum Cost >>> ${minCost.toLocaleString()}\n` +
-      	`Std Dev >>> ${Math.round(stdDev).toLocaleString()}`;
+      	`\nToken > ${Math.round(avgTokens).toLocaleString()} tkn\n` +
+      	`Solar Energy > ${Math.round(avgSolars).toLocaleString()} energy\n` +
+      	`Solar Blessing > ${Math.round(avgBlessings)} bless\n` +
+      	`Solar Favour > ${Math.round(avgFavours)} favour\n\n` +
+      	`↪Estimated Cost > ${Math.round(meanCost).toLocaleString()} tkn\n\n` +
+        `Attempts > ${Math.round(avgAttempts)}\n` +
+      	`Minimum Cost > ${minCost.toLocaleString()} tkn\n` +
+      	`Std Dev > ${Math.round(stdDev).toLocaleString()} tkn`;
       return text;
     }
   }
@@ -403,7 +446,7 @@
     	  movingAverageLabel: "이동평균",
   	},
   	en: {
-    	  histogramTitle1: "Estimated Cost (Token Stones)",
+    	  histogramTitle1: "Estimated Cost (Token)",
           histogramTitle2: "Solar Energy",
     	  dataCountLabel: "Count",
     	  movingAverageLabel: "Moving Average",
@@ -490,7 +533,7 @@
             legend: { display: true },
             title: {
               display: true,
-              text: chartText[lang].histogramTitle1,
+              text: chartText[lang].histogramTitle2,
               font: { size: 18 },
             },
           },
