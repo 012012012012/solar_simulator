@@ -109,7 +109,7 @@
       font-family: monospace;
       font-size: 14px;
       font-weight: 550;
-      height: 325px;
+      height: 320px;
       overflow-y: auto;
       margin-bottom: 30px;
       word-break: keep-all;
@@ -376,6 +376,20 @@
       return smoothed;
     }
 
+    function removeOutliers(target_lst) {
+      if (target_lst.length < 4) return target_lst;
+
+      const sorted = [...target_lst].sort((a, b) => a - b);
+      const q1 = sorted[Math.floor((sorted.length / 4))];
+      const q3 = sorted[Math.floor((sorted.length * 3) / 4)];
+      const iqr = q3 - q1;
+
+      const lowerBound = q1 - 1.5 * iqr;
+      const upperBound = q3 + 1.5 * iqr;
+
+      return target_lst.filter(value => value >= lowerBound && value <= upperBound);
+    }
+
     let histChart = null;
     let solarChart = null;
     function makeResultText(lang, path, blessingLevels, favourLevels, avgAttempts, avgTokens, avgSolars, avgBlessings, avgFavours, meanCost, minCost, stdDev) {
@@ -412,8 +426,8 @@
 
     function runSimulations(path, numRuns, blessingLevels, favourLevels, blessingPrice, favourPrice) {
       let totalAttempts = 0, totalTokens = 0, totalSolars = 0, totalBlessings = 0, totalFavours = 0;
-      const costList = [];
-      const solarList = [];
+      let costList = [];
+      let solarList = [];
 
       for (let i = 0; i < numRuns; i++) {
         const [attempts, tokens, solars, blessings, favours] = simulateUpgrade(path, blessingLevels, favourLevels);
@@ -439,6 +453,9 @@
       const maxCost = Math.max(...costList);
       const stdDev = Math.sqrt(costList.reduce((acc, val) => acc + (val - meanCost) ** 2, 0) / numRuns);
       
+      costList = removeOutliers(costList);
+      solarList = removeOutliers(solarList);
+
       const lang = currentLang;
 
       const resultText = makeResultText(lang, path, blessingLevels, favourLevels, avgAttempts, avgTokens, avgSolars, avgBlessings, avgFavours, meanCost, minCost, stdDev);
