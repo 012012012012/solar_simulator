@@ -135,7 +135,7 @@
     <div class="form-wrapper">
       <label data-ko="시작 레벨" data-en="Start Level"><span class="fixed-label">시작 레벨: </span><input type="number" id="startLevel" value="20" /></label>
       <label data-ko="목표 레벨" data-en="End Level"><span class="fixed-label">목표 레벨: </span><input type="number" id="endLevel" value="30" /></label>
-      <label data-ko="시뮬 횟수" data-en="Runs num"><span class="fixed-label">시뮬 횟수: </span><input type="number" id="numRuns" value="1000" readonly style="background:#eee; color:#555;" /></label>
+      <label data-ko="시뮬 횟수" data-en="Runs num"><span class="fixed-label">시뮬 횟수: </span><input type="number" id="numRuns" value="10000" readonly style="background:#eee; color:#555;" /></label>
       <label class="blessing" data-ko="축복 가격" data-en="Blessing price"><span class="fixed-label">축복 가격: </span><input type="number" id="blessingPrice" value="10000" /></label>
       <label class="favour" data-ko="가호 가격" data-en="Favour price"><span class="fixed-label">가호 가격: </span><input type="number" id="favourPrice" value="150000" /></label>
       <div class="input-group">
@@ -251,7 +251,7 @@
 
     function parseLevelSet(input) {
       return new Set(
-        input.split(',').map(x => x.trim()).map(Number).filter(x => !isNaN(x))
+    	input.split(",").map(s => s.trim()).filter(s => s !== "").map(Number).filter(n => !isNaN(n))
       );
     }
 
@@ -407,165 +407,189 @@
       	  `+비용 최소값+ ➡\u00A0${minCost.toLocaleString()}\u00A0징\n` +
       	  `+표준편차+ ➡\u00A0${Math.round(stdDev).toLocaleString()}\u00A0징`;
         return text;
-    } else if (lang === "en") {
-      let text = `Simulated (level\u00A0${path.startLevel}\u00A0➡\u00A0${path.endLevel}):\n`;
-      if (blessingLevels.size > 0) text += `+* Blessing :+ [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
-      if (favourLevels.size > 0) text += `+* Favour :+ [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
-      text +=
-      	`\n+Token+ ➡\u00A0${Math.round(avgTokens).toLocaleString()}\n` +
-      	`+Solar Energy+ ➡\u00A0${Math.round(avgSolars).toLocaleString()}\n` +
-      	`+Solar Blessing+ ➡\u00A0${Math.round(avgBlessings)}\n` +
-      	`+Solar Favour+ ➡\u00A0${Math.round(avgFavours)}\n\n` +
-      	`+↪Estimated Cost+ ➡\u00A0${Math.round(meanCost).toLocaleString()}\u00A0tkn\n\n` +
-        `+Attempts+ ➡\u00A0${Math.round(avgAttempts)}\n` +
-      	`+Min Cost+ ➡\u00A0${minCost.toLocaleString()}\u00A0tkn\n` +
-      	`+Std+ ➡\u00A0${Math.round(stdDev).toLocaleString()}\u00A0tkn`;
-      return text;
+      } 
+      else if (lang === "en") {
+        let text = `Simulated (level\u00A0${path.startLevel}\u00A0➡\u00A0${path.endLevel}):\n`;
+        if (blessingLevels.size > 0) text += `+* Blessing :+ [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
+        if (favourLevels.size > 0) text += `+* Favour :+ [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
+        text +=
+      	  `\n+Token+ ➡\u00A0${Math.round(avgTokens).toLocaleString()}\n` +
+      	  `+Solar Energy+ ➡\u00A0${Math.round(avgSolars).toLocaleString()}\n` +
+      	  `+Solar Blessing+ ➡\u00A0${Math.round(avgBlessings)}\n` +
+      	  `+Solar Favour+ ➡\u00A0${Math.round(avgFavours)}\n\n` +
+      	  `+↪Estimated Cost+ ➡\u00A0${Math.round(meanCost).toLocaleString()}\u00A0tkn\n\n` +
+          `+Attempts+ ➡\u00A0${Math.round(avgAttempts)}\n` +
+      	  `+Min Cost+ ➡\u00A0${minCost.toLocaleString()}\u00A0tkn\n` +
+      	  `+Std+ ➡\u00A0${Math.round(stdDev).toLocaleString()}\u00A0tkn`;
+        return text;
+      }
     }
-  }
 
     function runSimulations(path, numRuns, blessingLevels, favourLevels, blessingPrice, favourPrice) {
       let totalAttempts = 0, totalTokens = 0, totalSolars = 0, totalBlessings = 0, totalFavours = 0;
       let costList = [];
       let solarList = [];
 
-      for (let i = 0; i < numRuns; i++) {
-        const [attempts, tokens, solars, blessings, favours] = simulateUpgrade(path, blessingLevels, favourLevels);
-        totalAttempts += attempts;
-        totalTokens += tokens;
-        totalSolars += solars;
-        totalBlessings += blessings;
-        totalFavours += favours;
+      const batchSize = 500;
+      let currentRun = 0;
 
-        const totalCost = tokens + blessings * blessingPrice + favours * favourPrice;
-        costList.push(totalCost);
-        solarList.push(solars);
+      function runBatch() {
+        const end = Math.min(currentRun + batchSize, numRuns);
+        for (; currentRun < end; currentRun++) {
+          const [attempts, tokens, solars, blessings, favours] = simulateUpgrade(path, blessingLevels, favourLevels);
+          totalAttempts += attempts;
+          totalTokens += tokens;
+          totalSolars += solars;
+          totalBlessings += blessings;
+          totalFavours += favours;
+
+          const totalCost = tokens + blessings * blessingPrice + favours * favourPrice;
+          costList.push(totalCost);
+          solarList.push(solars);
+        }
+
+        if (currentRun < numRuns) {
+          setTimeout(runBatch, 0);
+        } 
+        else {
+          const avgAttempts = totalAttempts / numRuns;
+          const avgTokens = totalTokens / numRuns;
+          const avgSolars = totalSolars / numRuns;
+          const avgBlessings = totalBlessings / numRuns;
+          const avgFavours = totalFavours / numRuns;
+
+          const meanCost = avgTokens + avgBlessings * blessingPrice + avgFavours * favourPrice;
+          const minCost = Math.min(...costList);
+          const stdDev = Math.sqrt(costList.reduce((acc, val) => acc + (val - meanCost) ** 2, 0) / numRuns);
+
+          costList = removeOutliers(costList);
+          solarList = removeOutliers(solarList);
+
+          const lang = currentLang;
+
+          const resultText = makeResultText(
+            lang,
+            path,
+            blessingLevels,
+            favourLevels,
+            avgAttempts,
+            avgTokens,
+            avgSolars,
+            avgBlessings,
+            avgFavours,
+            meanCost,
+            minCost,
+            stdDev
+          );
+
+          typeText(document.getElementById("result"), resultText, 0);
+
+          const chartText = {
+            ko: {
+              histogramTitle1: "추정 비용(돌의 징표)",
+              histogramTitle2: "태양의 에너지",
+              dataCountLabel: "데이터 수",
+              movingAverageLabel: "이동평균",
+            },
+            en: {
+              histogramTitle1: "Estimated Cost (Token)",
+              histogramTitle2: "Solar Energy",
+              dataCountLabel: "Count",
+              movingAverageLabel: "Moving Average",
+            },
+          };
+
+          const histCtx = document.getElementById("histChart").getContext("2d");
+          if (histChart) histChart.destroy();
+          const histData = createHistogram(costList, 50);
+
+          histChart = new Chart(histCtx, {
+            type: "bar",
+            data: {
+              labels: histData.labels,
+              datasets: [
+                {
+                  label: chartText[lang].dataCountLabel,
+                  data: histData.bins,
+                  backgroundColor: "rgba(75, 192, 192, 0.6)",
+                  borderWidth: 1,
+                },
+                {
+                  type: "line",
+                  label: chartText[lang].movingAverageLabel,
+                  data: smoothLine(histData.bins, 5),
+                  borderColor: "rgba(255, 99, 132, 1)",
+                  borderWidth: 2,
+                  fill: false,
+                  tension: 0.3,
+                  yAxisID: "y",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              scales: {
+                y: { beginAtZero: true, title: { display: true } },
+                x: { display: false },
+              },
+                plugins: {
+            	  legend: { display: true },
+            	  title: {
+                  display: true,
+              	  text: chartText[lang].histogramTitle1,
+              	  font: { size: 18 },
+                },
+              },
+            },
+          });
+
+          const solarCtx = document.getElementById("solarChart").getContext("2d");
+          if (solarChart) solarChart.destroy();
+          const solarData = createHistogram(solarList, 50);
+
+          solarChart = new Chart(solarCtx, {
+            type: "bar",
+            data: {
+              labels: solarData.labels,
+              datasets: [
+                {
+                  label: chartText[lang].dataCountLabel,
+                  data: solarData.bins,
+                  backgroundColor: "rgba(255, 206, 86, 0.6)",
+                  borderWidth: 1,
+                },
+                {
+                  type: "line",
+                  label: chartText[lang].movingAverageLabel,
+                  data: smoothLine(solarData.bins, 5),
+                  borderColor: "rgba(255, 99, 132, 1)",
+                  borderWidth: 2,
+                  fill: false,
+                  tension: 0.3,
+                  yAxisID: "y",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              scales: {
+                y: { beginAtZero: true, title: { display: true } },
+                x: { display: false },
+              },
+              plugins: {
+                legend: { display: true },
+                title: {
+                  display: true,
+                  text: chartText[lang].histogramTitle2,
+                  font: { size: 18 },
+                },
+              },
+            },
+          });
+        }
       }
 
-      const avgAttempts = totalAttempts / numRuns;
-      const avgTokens = totalTokens / numRuns;
-      const avgSolars = totalSolars / numRuns;
-      const avgBlessings = totalBlessings / numRuns;
-      const avgFavours = totalFavours / numRuns;
-
-      const meanCost = avgTokens + avgBlessings * blessingPrice + avgFavours * favourPrice;
-      const minCost = Math.min(...costList);
-      const maxCost = Math.max(...costList);
-      const stdDev = Math.sqrt(costList.reduce((acc, val) => acc + (val - meanCost) ** 2, 0) / numRuns);
-      
-      costList = removeOutliers(costList);
-      solarList = removeOutliers(solarList);
-
-      const lang = currentLang;
-
-      const resultText = makeResultText(lang, path, blessingLevels, favourLevels, avgAttempts, avgTokens, avgSolars, avgBlessings, avgFavours, meanCost, minCost, stdDev);
-
-      typeText(document.getElementById("result"), resultText, 0);
-
-      //document.getElementById("result").textContent = resultText;
-      typeText(document.getElementById("result"), resultText, 10);
-      
-      const chartText = {
-  	ko: {
-    	  histogramTitle1: "추정 비용(돌의 징표)",
-          histogramTitle2: "태양의 에너지",
-    	  dataCountLabel: "데이터 수",
-    	  movingAverageLabel: "이동평균",
-  	},
-  	en: {
-    	  histogramTitle1: "Estimated Cost (Token)",
-          histogramTitle2: "Solar Energy",
-    	  dataCountLabel: "Count",
-    	  movingAverageLabel: "Moving Average",
-  	},
-      };
-
-      const histCtx = document.getElementById("histChart").getContext("2d");
-      if(histChart) histChart.destroy();
-      const histData = createHistogram(costList, 50);
-      
-      histChart = new Chart(histCtx, {
-        type: "bar",
-        data: {
-          labels: histData.labels,
-          datasets: [
-            {
-              label: chartText[lang].dataCountLabel,
-              data: histData.bins,
-              backgroundColor: "rgba(75, 192, 192, 0.6)",
-              borderWidth: 1,
-            },
-            {
-              type: "line",
-              label: chartText[lang].movingAverageLabel,
-              data: smoothLine(histData.bins, 5),
-              borderColor: "rgba(255, 99, 132, 1)",
-              borderWidth: 2,
-              fill: false,
-              tension: 0.3,
-              yAxisID: "y",
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: { beginAtZero: true, title: { display: true } },
-            x: { display: false },
-          },
-          plugins: {
-            legend: { display: true },
-            title: {
-              display: true,
-              text: chartText[lang].histogramTitle1,
-              font: { size: 18 },
-            },
-          },
-        },
-      });
-
-      const solarCtx = document.getElementById("solarChart").getContext("2d");
-      if(solarChart) solarChart.destroy();
-      const solarData = createHistogram(solarList, 50);
-      solarChart = new Chart(solarCtx, {
-        type: "bar",
-        data: {
-          labels: solarData.labels,
-          datasets: [
-            {
-              label: chartText[lang].dataCountLabel,
-              data: solarData.bins,
-              backgroundColor: "rgba(255, 206, 86, 0.6)",
-              borderWidth: 1,
-            },
-            {
-              type: "line",
-              label: chartText[lang].movingAverageLabel,
-              data: smoothLine(solarData.bins, 5),
-              borderColor: "rgba(255, 99, 132, 1)",
-              borderWidth: 2,
-              fill: false,
-              tension: 0.3,
-              yAxisID: "y",
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: { beginAtZero: true, title: { display: true } },
-            x: { display: false },
-          },
-          plugins: {
-            legend: { display: true },
-            title: {
-              display: true,
-              text: chartText[lang].histogramTitle2,
-              font: { size: 18 },
-            },
-          },
-        },
-      });
+      runBatch();
     }
 
     function runSimulation() {
@@ -579,7 +603,10 @@
       const blessingLevels = parseLevelSet(document.getElementById("blessingLevels").value);
       const favourLevels = parseLevelSet(document.getElementById("favourLevels").value);
 
-      runSimulations(path, numRuns, blessingLevels, favourLevels, blessingPrice, favourPrice);
+      typeText(document.getElementById("result"), "Simulating . . .", 0)
+      setTimeout(() => {
+        runSimulations(path, numRuns, blessingLevels, favourLevels, blessingPrice, favourPrice);
+      }, 100);
     }
     let currentLang = "ko";
 
@@ -594,9 +621,9 @@
   	} 
 	else {
     	  el.textContent = value;
-  	}
-      });
+      }
     });
+  });
   </script>
 </body>
 </html>
