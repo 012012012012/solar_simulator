@@ -152,6 +152,7 @@
       </div>
     </div>
     <pre id="result"></pre>
+    <pre id="progressText" style="font-family: monospace; font-size: 16px; font-weight: bold; margin-top: 5px; white-space: pre;"></pre>
     <canvas id="histChart"></canvas>
     <canvas id="solarChart"></canvas>
   </div>
@@ -256,7 +257,6 @@
     }
 
     let typingIntervalId = null;
-
     function typeText(element, text, speed = 20) {
       if (typingIntervalId) {
         clearInterval(typingIntervalId);
@@ -424,13 +424,24 @@
         return text;
       }
     }
+    
+    function updateProgressText(percent) {
+      const barLength = 12;
+      const filledLength = Math.round((percent / 100) * barLength);
+      const emptyLength = barLength - filledLength;
 
-    function runSimulations(path, numRuns, blessingLevels, favourLevels, blessingPrice, favourPrice) {
+      const bar = "[" + "#".repeat(filledLength) + "-".repeat(emptyLength) + "]";
+      const progressText = document.getElementById("progressText");
+
+      progressText.textContent = `${bar} ${percent}%`;
+    }
+
+    function runSimulations(path, numRuns, blessingLevels, favourLevels, blessingPrice, favourPrice, onComplete) {
       let totalAttempts = 0, totalTokens = 0, totalSolars = 0, totalBlessings = 0, totalFavours = 0;
       let costList = [];
       let solarList = [];
 
-      const batchSize = 500;
+      const batchSize = 100;
       let currentRun = 0;
 
       function runBatch() {
@@ -447,6 +458,9 @@
           costList.push(totalCost);
           solarList.push(solars);
         }
+
+        const progressPercent = Math.floor((currentRun / numRuns) * 100);
+        updateProgressText(progressPercent);
 
         if (currentRun < numRuns) {
           setTimeout(runBatch, 0);
@@ -586,13 +600,17 @@
               },
             },
           });
+          onComplete?.();
         }
       }
 
       runBatch();
     }
 
+    const simButton = document.querySelector('button[onclick="runSimulation()"]');
     function runSimulation() {
+      simButton.disabled = true;
+
       const path = {
         startLevel: parseInt(document.getElementById("startLevel").value),
         endLevel: parseInt(document.getElementById("endLevel").value),
@@ -603,13 +621,17 @@
       const blessingLevels = parseLevelSet(document.getElementById("blessingLevels").value);
       const favourLevels = parseLevelSet(document.getElementById("favourLevels").value);
 
-      typeText(document.getElementById("result"), "Simulating . . .", 0)
-      setTimeout(() => {
-        runSimulations(path, numRuns, blessingLevels, favourLevels, blessingPrice, favourPrice);
-      }, 100);
-    }
-    let currentLang = "ko";
+      typeText(document.getElementById("result"), "Simulating . . .", 30)
 
+      setTimeout(() => { 
+        runSimulations(path, numRuns, blessingLevels, favourLevels, blessingPrice, favourPrice, () => {
+          simButton.disabled = false;
+        });
+      }, 100);
+      
+    }
+
+    let currentLang = "ko";
     document.getElementById("langToggle").addEventListener("click", () => {
       currentLang = currentLang === "ko" ? "en" : "ko";
       document.getElementById("langToggle").textContent = currentLang === "ko" ? "English" : "한국어";
