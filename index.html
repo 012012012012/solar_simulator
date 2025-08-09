@@ -492,7 +492,7 @@
 
           const meanCost = avgTokens + avgBlessings * blessingPrice + avgFavours * favourPrice;
           const midCost = getMedian(costList);
-          const stdDev = Math.sqrt(costList.reduce((acc, val) => acc + (val - meanCost) ** 2, 0) / numRuns);
+          const stdDev = Math.sqrt(costList.reduce((acc, val) => acc + (val - meanCost) ** 2, 0) / (numRuns - 1));
 
           costList = removeOutliers(costList);
           solarList = removeOutliers(solarList);
