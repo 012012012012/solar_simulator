@@ -396,7 +396,7 @@
 
     let histChart = null;
     let solarChart = null;
-    function makeResultText(lang, path, blessingLevels, favourLevels, avgAttempts, avgTokens, avgSolars, avgBlessings, avgFavours, meanCost, minCost, stdDev) {
+    function makeResultText(lang, path, blessingLevels, favourLevels, avgAttempts, avgTokens, avgSolars, avgBlessings, avgFavours, meanCost, midCost, stdDev) {
       if (lang === "ko") {
         let text = `시뮬레이션 결과 (레벨\u00A0${path.startLevel}\u00A0➡\u00A0${path.endLevel}):\n`;
         if (blessingLevels.size > 0) text += `+* 축복 :+ [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
@@ -407,8 +407,8 @@
       	  `+태양의 축복+ ➡\u00A0${Math.round(avgBlessings)}\n` +
       	  `+태양의 가호+ ➡\u00A0${Math.round(avgFavours)}\n\n` +
       	  `+↪추정 비용+ ➡\u00A0${Math.round(meanCost).toLocaleString()}\u00A0징\n\n` +
-          `+평균 강화 횟수+ ➡\u00A0${Math.round(avgAttempts)}\u00A0회\n` +
-      	  `+비용 최소값+ ➡\u00A0${minCost.toLocaleString()}\u00A0징\n` +
+          `+평균 강화 횟수+ ➡\u00A0${Math.round(avgAttempts).toLocaleString()}\u00A0회\n` +
+      	  `+비용 중앙값+ ➡\u00A0${midCost.toLocaleString()}\u00A0징\n` +
       	  `+표준편차+ ➡\u00A0${Math.round(stdDev).toLocaleString()}\u00A0징`;
         return text;
       } 
@@ -422,8 +422,8 @@
       	  `+Solar Blessing+ ➡\u00A0${Math.round(avgBlessings)}\n` +
       	  `+Solar Favour+ ➡\u00A0${Math.round(avgFavours)}\n\n` +
       	  `+↪Estimated Cost+ ➡\u00A0${Math.round(meanCost).toLocaleString()}\u00A0tkn\n\n` +
-          `+Attempts+ ➡\u00A0${Math.round(avgAttempts)}\n` +
-      	  `+Min Cost+ ➡\u00A0${minCost.toLocaleString()}\u00A0tkn\n` +
+          `+Attempts+ ➡\u00A0${Math.round(avgAttempts).toLocaleString()}\n` +
+      	  `+Median Cost+ ➡\u00A0${midCost.toLocaleString()}\u00A0tkn\n` +
       	  `+Std+ ➡\u00A0${Math.round(stdDev).toLocaleString()}\u00A0tkn`;
         return text;
       }
@@ -440,6 +440,20 @@
       progressText.textContent = `${bar} ${percent}%`;
     }
 
+    function getMedian(arr) {
+      if (arr.length === 0) return null;
+  
+      const sorted = [...arr].sort((a, b) => a - b);
+      const mid = Math.floor(sorted.length / 2);
+
+      if (sorted.length % 2 === 0) {
+        return (sorted[mid - 1] + sorted[mid]) / 2;
+      }
+      else {
+        return sorted[mid];
+      }
+    }
+
     function runSimulations(path, numRuns, blessingLevels, favourLevels, blessingPrice, favourPrice, onComplete) {
       let totalAttempts = 0, totalTokens = 0, totalSolars = 0, totalBlessings = 0, totalFavours = 0;
       let costList = [];
@@ -447,7 +461,7 @@
 
       const batchSize = 100;
       let currentRun = 0;
-
+      
       function runBatch() {
         const end = Math.min(currentRun + batchSize, numRuns);
         for (; currentRun < end; currentRun++) {
@@ -477,7 +491,7 @@
           const avgFavours = totalFavours / numRuns;
 
           const meanCost = avgTokens + avgBlessings * blessingPrice + avgFavours * favourPrice;
-          const minCost = Math.min(...costList);
+          const midCost = getMedian(costList);
           const stdDev = Math.sqrt(costList.reduce((acc, val) => acc + (val - meanCost) ** 2, 0) / numRuns);
 
           costList = removeOutliers(costList);
@@ -496,7 +510,7 @@
             avgBlessings,
             avgFavours,
             meanCost,
-            minCost,
+            midCost,
             stdDev
           );
 
@@ -653,5 +667,4 @@
   </script>
 </body>
 </html>
-
 
