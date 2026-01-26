@@ -8,7 +8,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #edf0c0;
+      background-color: #F8F9FB;
       margin: 0;
       padding: 30px 10px;
       display: flex;
@@ -17,7 +17,7 @@
       min-height: 100vh;
     }
     .card {
-      background: white;
+      background: #FFFFFF;
       padding: 30px;
       border-radius: 12px;
       box-shadow: 0 0 12px rgba(0,0,0,0.15);
@@ -48,6 +48,7 @@
       width: 110px;
       text-align: left;
       margin-right: 10px; 
+      font-weight: bold;
     }
     input[type="number"], input[type="text"] {
       margin-left: 10px;
@@ -57,8 +58,10 @@
       width: 100px;
     }
     input.long-input {
-      width: 100%;
+      width: 90%;
       max-width: 300px;
+      margin-left: 0px;
+      margin-right: 10px;
     }
     .input-group {
       display: flex;
@@ -78,8 +81,11 @@
       height: 36px;
       padding: 2px 12px;
       font-size: 16px;
-      background-color: #4caf50;
+      /*background-color: #4caf50;*/
+      /*color: white;*/
+      background-color: #16a34a;
       color: white;
+      /*font-weight: bold;*/
       border: none;
       border-radius: 6px;
       cursor: pointer;
@@ -139,9 +145,11 @@
     <div class="form-wrapper">
       <label><span class="fixed-label lang-label" data-ko="시작 레벨" data-en="Start Level">시작 레벨: </span><input type="number" id="startLevel" value="20" /></label>
       <label><span class="fixed-label lang-label" data-ko="목표 레벨" data-en="End Level">목표 레벨: </span><input type="number" id="endLevel" value="30" /></label>
-      <label><span class="fixed-label lang-label" data-ko="시뮬 횟수" data-en="Runs num">시뮬 횟수: </span><input type="number" id="numRuns" value="10000" readonly style="background:#eee; color:#555;" /></label>
+      
+      <label style="display: none;"><span class="fixed-label lang-label" data-ko="시뮬 횟수" data-en="Runs num">시뮬 횟수: </span><input type="number" id="numRuns" value="10000" readonly style="background:#eee; color:#555;" /></label>
       <label class="blessing"><span class="fixed-label lang-label" data-ko="축복 가격" data-en="Blessing price">축복 가격: </span><input type="number" id="blessingPrice" value="10000" /></label>
       <label class="favour"><span class="fixed-label lang-label" data-ko="가호 가격" data-en="Favour price">가호 가격: </span><input type="number" id="favourPrice" value="150000" /></label>
+      
       <div class="input-group">
         <label for="blessingLevels" class="blessing"><span class="fixed-label lang-label" data-ko="축복 사용 레벨" data-en="Blessing at">축복 사용 레벨:</span></label>
         <input type="text" id="blessingLevels" class="long-input lang-label" data-ko="레벨 입력( , - )" data-en="Input Lv( , - )" placeholder= "레벨 입력( , - )"/>
@@ -152,11 +160,11 @@
       </div>
       <div class="button-group">
         <button onclick="runSimulation()">Run Simulation</button>
-        <button id="langToggle"><span class="lang-label" data-ko="English" data-en="한국어">English</span></button>
+        <button id="langToggle" style="display: none;"><span class="lang-label" data-ko="English" data-en="한국어">English</span></button>
+        <pre id="progressText" style="font-family: monospace; font-size: 16px; font-weight: bold; margin-top: 10px; white-space: pre;"></pre>
       </div>
     </div>
     <pre id="result"></pre>
-    <pre id="progressText" style="font-family: monospace; font-size: 16px; font-weight: bold; margin-top: 5px; white-space: pre;"></pre>
     <canvas id="histChart"></canvas>
     <canvas id="solarChart"></canvas>
   </div>
