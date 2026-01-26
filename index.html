@@ -47,7 +47,7 @@
       display: inline-block;
       width: 110px;
       text-align: left;
-      margin-right: 10px; 
+      margin-right: 0px; 
       font-weight: bold;
     }
     input[type="number"], input[type="text"] {
@@ -83,10 +83,10 @@
       font-size: 16px;
       /*background-color: #4caf50;*/
       /*color: white;*/
-      background-color: #16a34a;
+      background-color: #181818;
       color: white;
       /*font-weight: bold;*/
-      border: none;
+      border: solid 2px #181818;
       border-radius: 6px;
       cursor: pointer;
       transition: background-color 0.3s;
@@ -105,7 +105,8 @@
       font-size: 14px;
     }
     button:hover {
-      background-color: #45a049;
+      background-color: #F8F9FB;
+      color: #181818;
     }
     #result {
       color: #000;
@@ -159,7 +160,7 @@
         <input type="text" id="favourLevels" class="long-input lang-label" data-ko="예시: 27-29 ➡ 27,28,29" data-en="Ex) 27-29 ➡ 27,28,29" placeholder="예시: 27-29 ➡ 27,28,29" />
       </div>
       <div class="button-group">
-        <button onclick="runSimulation()">Run Simulation</button>
+        <button onclick="runSimulation()" class="lang-label" data-ko="실행" data-en="Run">&ThickSpace;Run&ThickSpace;</button>
         <button id="langToggle" style="display: none;"><span class="lang-label" data-ko="English" data-en="한국어">English</span></button>
         <pre id="progressText" style="font-family: monospace; font-size: 16px; font-weight: bold; margin-top: 10px; white-space: pre;"></pre>
       </div>
@@ -704,10 +705,11 @@
     window.addEventListener("load",() => {
         document.querySelectorAll(".lang-label").forEach((el) => {
             const label = el.getAttribute("data-" + currentLang);
-            if(el.tagName === "SPAN")
-                el.textContent = label;
-            else if(el.tagName ==="INPUT")
-                el.placeholder = label;
+            if(el.tagName === "INPUT")
+              el.placeholder = label;
+            else
+              el.textContent = label;
+                
         });
     });
 
