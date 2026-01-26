@@ -45,7 +45,7 @@
     }
     .fixed-label {
       display: inline-block;
-      width: 80px;
+      width: 110px;
       text-align: left;
       margin-right: 10px; 
     }
@@ -135,24 +135,24 @@
 </head>
 <body>
   <div class="card">
-    <h1 data-ko="태양석 시뮬레이터" data-en="Solar Simulator">태양석 시뮬레이터</h1>
+    <h1><span class="lang-label" data-ko="태양석 시뮬레이터" data-en="Solar Simulator">태양석 시뮬레이터</span></h1>
     <div class="form-wrapper">
-      <label data-ko="시작 레벨" data-en="Start Level"><span class="fixed-label">시작 레벨: </span><input type="number" id="startLevel" value="20" /></label>
-      <label data-ko="목표 레벨" data-en="End Level"><span class="fixed-label">목표 레벨: </span><input type="number" id="endLevel" value="30" /></label>
-      <label data-ko="시뮬 횟수" data-en="Runs num"><span class="fixed-label">시뮬 횟수: </span><input type="number" id="numRuns" value="10000" readonly style="background:#eee; color:#555;" /></label>
-      <label class="blessing" data-ko="축복 가격" data-en="Blessing price"><span class="fixed-label">축복 가격: </span><input type="number" id="blessingPrice" value="10000" /></label>
-      <label class="favour" data-ko="가호 가격" data-en="Favour price"><span class="fixed-label">가호 가격: </span><input type="number" id="favourPrice" value="150000" /></label>
+      <label><span class="fixed-label lang-label" data-ko="시작 레벨" data-en="Start Level">시작 레벨: </span><input type="number" id="startLevel" value="20" /></label>
+      <label><span class="fixed-label lang-label" data-ko="목표 레벨" data-en="End Level">목표 레벨: </span><input type="number" id="endLevel" value="30" /></label>
+      <label><span class="fixed-label lang-label" data-ko="시뮬 횟수" data-en="Runs num">시뮬 횟수: </span><input type="number" id="numRuns" value="10000" readonly style="background:#eee; color:#555;" /></label>
+      <label class="blessing"><span class="fixed-label lang-label" data-ko="축복 가격" data-en="Blessing price">축복 가격: </span><input type="number" id="blessingPrice" value="10000" /></label>
+      <label class="favour"><span class="fixed-label lang-label" data-ko="가호 가격" data-en="Favour price">가호 가격: </span><input type="number" id="favourPrice" value="150000" /></label>
       <div class="input-group">
-        <label for="blessingLevels" class="blessing" data-ko="축복 사용 레벨" data-en="Blessing at">축복 사용 레벨:</label>
-        <input type="text" id="blessingLevels" class="long-input" value="24,25,26,27,28" />
+        <label for="blessingLevels" class="blessing"><span class="fixed-label lang-label" data-ko="축복 사용 레벨" data-en="Blessing at">축복 사용 레벨:</span></label>
+        <input type="text" id="blessingLevels" class="long-input lang-label" data-ko="레벨 입력( , - )" data-en="Input Lv( , - )" placeholder= "레벨 입력( , - )"/>
       </div>
       <div class="input-group">
-        <label for="favourLevels" class="favour" data-ko="가호 사용 레벨" data-en="Favour at">가호 사용 레벨:</label>
-        <input type="text" id="favourLevels" class="long-input" value="27,28,29" />
+        <label for="favourLevels" class="favour"><span class="fixed-label lang-label" data-ko="가호 사용 레벨" data-en="Favour at">가호 사용 레벨:</span></label>
+        <input type="text" id="favourLevels" class="long-input lang-label" data-ko="예시: 27-29 ➡ 27,28,29" data-en="Ex) 27-29 ➡ 27,28,29" placeholder="예시: 27-29 ➡ 27,28,29" />
       </div>
       <div class="button-group">
         <button onclick="runSimulation()">Run Simulation</button>
-        <button id="langToggle">English</button>
+        <button id="langToggle"><span class="lang-label" data-ko="English" data-en="한국어">English</span></button>
       </div>
     </div>
     <pre id="result"></pre>
@@ -254,10 +254,51 @@
       return 15;
     }
 
-    function parseLevelSet(input) {
-      return new Set(
-    	input.split(",").map(s => s.trim()).filter(s => s !== "").map(Number).filter(n => !isNaN(n))
-      );
+    function parseLevelSet(input, path) {
+      let nospaceInput = [];
+      for(let i = 0; i < input.length; i++){
+        if(Number.isInteger(Number(input[i])) || input[i] === ',' || input[i] === '-'){
+            nospaceInput.push(input[i]);
+        }
+      }
+      console.log("nospaceInput: ",nospaceInput);
+
+      let rawList = nospaceInput.join("").split(',');
+      console.log("rawList: ", rawList);
+
+      let processedList = [];
+
+      for(let i = 0; i < rawList.length; i++){
+
+        let temp = [];
+        rawList[i].split('-').forEach((el) => {
+            if(el != '')temp.push(Number(el));
+        })
+
+        if(!processedList.includes(temp[0])){
+            processedList.push(temp[0]);
+            //console.log("temp[0]: ", temp[0]);
+        }
+        
+        for(let j = 0; j < temp.length - 1; j++){
+            if(temp[j + 1] - temp[j] == 0)break;
+            let step = Math.abs(temp[j + 1] - temp[j]) / (temp[j + 1] - temp[j]);
+
+            let start = temp[j];
+            let end = temp[j + 1];
+            let count = 0;
+            do{
+                start = start + step;
+                if(!processedList.includes(start))processedList.push(start);
+
+                if(count > 1000)break;
+                count++;
+            }while(start != end);
+        }
+
+      }
+
+      return new Set(processedList.filter(el => {return el >= path.startLevel && el <= path.endLevel;}));
     }
 
     let typingIntervalId = null;
@@ -636,8 +677,8 @@
       const numRuns = parseInt(document.getElementById("numRuns").value);
       const blessingPrice = parseInt(document.getElementById("blessingPrice").value);
       const favourPrice = parseInt(document.getElementById("favourPrice").value);
-      const blessingLevels = parseLevelSet(document.getElementById("blessingLevels").value);
-      const favourLevels = parseLevelSet(document.getElementById("favourLevels").value);
+      const blessingLevels = parseLevelSet(document.getElementById("blessingLevels").value, path);
+      const favourLevels = parseLevelSet(document.getElementById("favourLevels").value, path);
 
       typeText(document.getElementById("result"), "Simulating . . .", 30)
 
@@ -649,22 +690,32 @@
       
     }
 
-    let currentLang = "ko";
+    //let currentLang = "ko";
+    let currentLang = window.navigator.language.split('-')[0] === "ko"? "ko" : "en";
+    
+    window.addEventListener("load",() => {
+        document.querySelectorAll(".lang-label").forEach((el) => {
+            const label = el.getAttribute("data-" + currentLang);
+            if(el.tagName === "SPAN")
+                el.textContent = label;
+            else if(el.tagName ==="INPUT")
+                el.placeholder = label;
+        });
+    });
+
     document.getElementById("langToggle").addEventListener("click", () => {
       currentLang = currentLang === "ko" ? "en" : "ko";
-      document.getElementById("langToggle").textContent = currentLang === "ko" ? "English" : "한국어";
+      //document.getElementById("langToggle").textContent = currentLang === "ko" ? "English" : "한국어";
 
-      document.querySelectorAll("[data-ko]").forEach(el => {
-        const value = el.getAttribute(`data-${currentLang}`);
-  	if (el.tagName === "LABEL" && el.children.length > 0) {
-    	  el.childNodes[0].textContent = value;
-  	} 
-	else {
-    	  el.textContent = value;
-      }
+      document.querySelectorAll(".lang-label").forEach((el) => {
+            const label = el.getAttribute("data-" + currentLang);
+            if(el.tagName === "SPAN")
+                el.textContent = label;
+            else if(el.tagName ==="INPUT")
+                el.placeholder = label;
+        });
     });
-  });
+
   </script>
 </body>
 </html>
-
