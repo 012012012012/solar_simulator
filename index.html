@@ -119,7 +119,9 @@
       font-size: 14px;
       font-weight: 550;
       width: calc(100% - 30px);
-      height: 350px;
+      /*height: 350px;*/
+      line-height: 1.4em;
+      height: calc(1.4*16em);
       overflow-y: auto;
       word-break: keep-all;
       margin-right: 20px;
@@ -475,7 +477,7 @@
       	  `+태양의 에너지+ ➡\u00A0${Math.round(avgSolars).toLocaleString()}\n` +
       	  `+태양의 축복+ ➡\u00A0${Math.round(avgBlessings)}\n` +
       	  `+태양의 가호+ ➡\u00A0${Math.round(avgFavours)}\n\n` +
-      	  `+↪추정 비용+ ➡\u00A0${Math.round(meanCost).toLocaleString()}\u00A0징\n\n\n<hr>\n` +
+      	  `+↪추정 비용+ ➡\u00A0${Math.round(meanCost).toLocaleString()}\u00A0징\n\n<hr>` +
           `+평균 강화 횟수+ ➡\u00A0${Math.round(avgAttempts).toLocaleString()}\u00A0회\n` +
       	  `+비용 중앙값+ ➡\u00A0${midCost.toLocaleString()}\u00A0징\n` +
       	  `+표준편차+ ➡\u00A0${Math.round(stdDev).toLocaleString()}\u00A0징`;
@@ -748,5 +750,3 @@
   </script>
 </body>
 </html>
-
-
