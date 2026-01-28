@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -64,7 +65,7 @@
       margin-right: 10px;
     }
     .input-group {
-      display: flex;
+      display: inline-flex;
       flex-direction: column;
       gap: 6px;
     }
@@ -92,7 +93,7 @@
       transition: background-color 0.3s;
     }
     .button-group {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 10px;
       margin-top: 20px;
@@ -117,10 +118,11 @@
       font-family: monospace;
       font-size: 14px;
       font-weight: 550;
-      height: 320px;
+      width: calc(100% - 30px);
+      height: 300px;
       overflow-y: auto;
-      margin-bottom: 30px;
       word-break: keep-all;
+      margin-right: 20px;
     }
     #result b{
       color: #000;
@@ -139,34 +141,50 @@
       }
       
     }
+    @media (min-width: 800px) {
+      #box-wrapper{
+        display: flex;
+      }
+      .form-wrapper{
+        margin-left: 80px;
+      }
+      #result{
+        margin-left: 50px;
+        margin-right: 80px;
+        margin-bottom: 50px;
+        margin-top: 0px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="card">
     <h1><span class="lang-label" data-ko="태양석 시뮬레이터" data-en="Solar Simulator">태양석 시뮬레이터</span></h1>
-    <div class="form-wrapper">
-      <label><span class="fixed-label lang-label" data-ko="시작 레벨" data-en="Start Level">시작 레벨: </span><input type="number" id="startLevel" value="20" /></label>
-      <label><span class="fixed-label lang-label" data-ko="목표 레벨" data-en="End Level">목표 레벨: </span><input type="number" id="endLevel" value="30" /></label>
-      
-      <label style="display: none;"><span class="fixed-label lang-label" data-ko="시뮬 횟수" data-en="Runs num">시뮬 횟수: </span><input type="number" id="numRuns" value="10000" readonly style="background:#eee; color:#555;" /></label>
-      <label class="blessing"><span class="fixed-label lang-label" data-ko="축복 가격" data-en="Blessing price">축복 가격: </span><input type="number" id="blessingPrice" value="10000" /></label>
-      <label class="favour"><span class="fixed-label lang-label" data-ko="가호 가격" data-en="Favour price">가호 가격: </span><input type="number" id="favourPrice" value="150000" /></label>
-      
-      <div class="input-group">
-        <label for="blessingLevels" class="blessing"><span class="fixed-label lang-label" data-ko="축복 사용 레벨" data-en="Blessing at">축복 사용 레벨:</span></label>
-        <input type="text" id="blessingLevels" class="long-input lang-label" data-ko="레벨 입력( , - )" data-en="Input Lv( , - )" placeholder= "레벨 입력( , - )"/>
+    <div id="box-wrapper">
+      <div class="form-wrapper">
+        <label><span class="fixed-label lang-label" data-ko="시작 레벨" data-en="Start Level">시작 레벨: </span><input type="number" id="startLevel" value="20" /></label>
+        <label><span class="fixed-label lang-label" data-ko="목표 레벨" data-en="End Level">목표 레벨: </span><input type="number" id="endLevel" value="30" /></label>
+        
+        <label style="display: none;"><span class="fixed-label lang-label" data-ko="시뮬 횟수" data-en="Runs num">시뮬 횟수: </span><input type="number" id="numRuns" value="10000" readonly style="background:#eee; color:#555;" /></label>
+        <label class="blessing"><span class="fixed-label lang-label" data-ko="축복 가격" data-en="Blessing price">축복 가격: </span><input type="number" id="blessingPrice" value="10000" /></label>
+        <label class="favour"><span class="fixed-label lang-label" data-ko="가호 가격" data-en="Favour price">가호 가격: </span><input type="number" id="favourPrice" value="150000" /></label>
+        
+        <div class="input-group">
+          <label for="blessingLevels" class="blessing"><span class="fixed-label lang-label" data-ko="축복 사용 레벨" data-en="Blessing at">축복 사용 레벨:</span></label>
+          <input type="text" id="blessingLevels" class="long-input lang-label" data-ko="레벨 입력( , - )" data-en="Input Lv( , - )" placeholder= "레벨 입력( , - )"/>
+        </div>
+        <div class="input-group">
+          <label for="favourLevels" class="favour"><span class="fixed-label lang-label" data-ko="가호 사용 레벨" data-en="Favour at">가호 사용 레벨:</span></label>
+          <input type="text" id="favourLevels" class="long-input lang-label" data-ko="예시: 27-29 ➡ 27,28,29" data-en="Ex) 27-29 ➡ 27,28,29" placeholder="예시: 27-29 ➡ 27,28,29" />
+        </div>
+        <div class="button-group">
+          <button onclick="runSimulation()" class="lang-label" data-ko="실행" data-en="Run">&ThickSpace;Run&ThickSpace;</button>
+          <button id="langToggle" style="display: none;"><span class="lang-label" data-ko="English" data-en="한국어">English</span></button>
+          <pre id="progressText" style="font-family: monospace; font-size: 16px; font-weight: bold; margin-top: 10px; margin-left:10px; white-space: pre;"></pre>
+        </div>
       </div>
-      <div class="input-group">
-        <label for="favourLevels" class="favour"><span class="fixed-label lang-label" data-ko="가호 사용 레벨" data-en="Favour at">가호 사용 레벨:</span></label>
-        <input type="text" id="favourLevels" class="long-input lang-label" data-ko="예시: 27-29 ➡ 27,28,29" data-en="Ex) 27-29 ➡ 27,28,29" placeholder="예시: 27-29 ➡ 27,28,29" />
-      </div>
-      <div class="button-group">
-        <button onclick="runSimulation()" class="lang-label" data-ko="실행" data-en="Run">&ThickSpace;Run&ThickSpace;</button>
-        <button id="langToggle" style="display: none;"><span class="lang-label" data-ko="English" data-en="한국어">English</span></button>
-        <pre id="progressText" style="font-family: monospace; font-size: 16px; font-weight: bold; margin-top: 10px; margin-left:10px; white-space: pre;"></pre>
-      </div>
+      <pre id="result"></pre>
     </div>
-    <pre id="result"></pre>
     <canvas id="histChart"></canvas>
     <canvas id="solarChart"></canvas>
   </div>
@@ -449,7 +467,7 @@
     let solarChart = null;
     function makeResultText(lang, path, blessingLevels, favourLevels, avgAttempts, avgTokens, avgSolars, avgBlessings, avgFavours, meanCost, midCost, stdDev) {
       if (lang === "ko") {
-        let text = `시뮬레이션 결과 (레벨\u00A0${path.startLevel}\u00A0➡\u00A0${path.endLevel}):\n`;
+        let text = `+시뮬레이션 결과+ (레벨\u00A0${path.startLevel}\u00A0➡\u00A0${path.endLevel}):\n`;
         if (blessingLevels.size > 0) text += `+* 축복 :+ [${[...blessingLevels].sort((a,b)=>a-b)}]\n`;
         if (favourLevels.size > 0) text += `+* 가호 :+ [${[...favourLevels].sort((a,b)=>a-b)}]\n`;
         text +=
@@ -457,7 +475,7 @@
       	  `+태양의 에너지+ ➡\u00A0${Math.round(avgSolars).toLocaleString()}\n` +
       	  `+태양의 축복+ ➡\u00A0${Math.round(avgBlessings)}\n` +
       	  `+태양의 가호+ ➡\u00A0${Math.round(avgFavours)}\n\n` +
-      	  `+↪추정 비용+ ➡\u00A0${Math.round(meanCost).toLocaleString()}\u00A0징\n\n` +
+      	  `+↪추정 비용+ ➡\u00A0${Math.round(meanCost).toLocaleString()}\u00A0징\n\n\n<hr>\n` +
           `+평균 강화 횟수+ ➡\u00A0${Math.round(avgAttempts).toLocaleString()}\u00A0회\n` +
       	  `+비용 중앙값+ ➡\u00A0${midCost.toLocaleString()}\u00A0징\n` +
       	  `+표준편차+ ➡\u00A0${Math.round(stdDev).toLocaleString()}\u00A0징`;
